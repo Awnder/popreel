@@ -1,4 +1,10 @@
 import React, { useRef, useEffect } from "react";
+import {
+  HandThumbUpIcon,
+  HandThumbDownIcon,
+  ChatBubbleBottomCenterIcon,
+  ShareIcon,
+} from "@heroicons/react/24/outline";
 
 export default function VideoPlayer({ src }) {
   const videoRef = useRef(null);
@@ -51,25 +57,25 @@ export default function VideoPlayer({ src }) {
         muted // Mute the video to play it automatically (required by most browsers?)
       />
       {/* Button Container */}
-      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex flex-col space-y-8">
+      <div className="absolute right-8 top-[calc(55%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
         {/* Like Button */}
-        <button className="text-white  rounded-full p-3 hover:bg-gray-700 transition">
-          👍
+        <button className=" bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
+          <HandThumbUpIcon className="w-6 h-6" />
         </button>
 
         {/* Dislike Button */}
-        <button className="text-white bg-gray-800 rounded-full p-3 hover:bg-gray-700 transition">
-          👎
+        <button className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
+          <HandThumbDownIcon className="w-6 h-6" />
         </button>
 
         {/* Comment Button */}
-        <button className="text-white bg-gray-800 rounded-full p-3 hover:bg-gray-700 transition">
-          💬
+        <button className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
+          <ChatBubbleBottomCenterIcon className="w-6 h-6" />
         </button>
 
         {/* Share Button */}
-        <button className="text-white bg-gray-800 rounded-full p-3 hover:bg-gray-700 transition">
-          🔗
+        <button className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
+          <ShareIcon className="w-6 h-6" />
         </button>
       </div>
     </div>

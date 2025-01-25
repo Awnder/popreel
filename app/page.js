@@ -18,8 +18,6 @@
 //   )
 // }
 
-import VideoPlayer from "./components/VideoPlayer";
-
 const videos = [
   {
     src: "https://www.w3schools.com/html/mov_bbb.mp4",
@@ -50,9 +48,14 @@ const videos = [
   },
 ];
 
+import VideoPlayer from "./components/VideoPlayer";
+import LeftSideBar from "./components/LeftSideBar";
+
 export default function Home() {
+  
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
+      <LeftSideBar />
       <main className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-none">
         {videos.map((video, index) => (
           <div
