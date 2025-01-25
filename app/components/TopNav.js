@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
-import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlinePlus, AiOutlineArrowLeft } from "react-icons/ai";
 import PurpleButton from "./PurpleButton";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function TopNav() {
+  const pathName = usePathname();
+
   return (
     <>
       <div
@@ -17,13 +20,24 @@ export default function TopNav() {
           className={"flex items-center justify-end w-full gap-6 px-10 mx-auto"}
         >
           <SignedIn>
-            <PurpleButton>
-              <Link href="/upload" className="flex items-center">
-                <AiOutlinePlus color="black" size={20} />
-                <span className="font-medium px-2">Upload</span>
-              </Link>
-            </PurpleButton>
-            <UserButton />
+            { pathName === '/upload' ? (
+              <PurpleButton>
+                <Link href="/" className="flex items-center">
+                  <AiOutlineArrowLeft color="white" size={20} />
+                  <span className="font-medium text-white px-2">For You</span>
+                </Link>
+              </PurpleButton>
+            ) : (
+              <div>
+                <PurpleButton>
+                  <Link href="/upload" className="flex items-center">
+                    <AiOutlinePlus color="white" size={20} />
+                    <span className="font-medium text-white px-2">Upload</span>
+                  </Link>
+                </PurpleButton>
+              </div>
+            )}
+            <UserButton /> 
           </SignedIn>
           <SignedOut>
             <SignInButton>
