@@ -36,7 +36,7 @@ export default function Upload() {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center bg-gradient-to-br from-purple-950 via-black to-indigo-950">
         <div className='flex flex-col items-center justify-center w-full h-screen'>
           <h1 className='text-3xl font-semibold text-purple-900 mb-5'>Upload a Video</h1>
           <label
