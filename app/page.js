@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 // import { createClient } from '../utils/supabase/server'
 // import { cookies } from 'next/headers'
@@ -18,18 +18,51 @@
 //   )
 // }
 
+import VideoPlayer from "./components/VideoPlayer";
+
+const videos = [
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+  {
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+  },
+];
+
 export default function Home() {
   return (
-    <>
-      <div className="flex flex-col items-center jsutify-center">
-        <div className='flex flex-col items-center justify-center w-full h-screen'>
-          <h1 className='text-4xl font-bold text-purple'>Welcome to the Clerk Next.js App Quickstart</h1>
-          <p className='text-purple'>This is a simple Next.js app with Clerk authentication and Supabase storage.</p>
-          <p className='text-purple'>To get started, sign up or sign in using the button in the top right corner.</p>
-          <div className='flex flex-col items-center justify-center w-[40%]'>
-          </div>  
-        </div>
-      </div>
-    </>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
+      <main className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-none">
+        {videos.map((video, index) => (
+          <div
+            key={index}
+            className="w-full h-screen snap-center flex justify-center items-center bg-inherit"
+          >
+            <VideoPlayer src={video.src} />
+          </div>
+        ))}
+      </main>
+    </div>
   );
 }
