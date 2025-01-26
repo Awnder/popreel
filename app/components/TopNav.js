@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton, isSignedIn, useSession, useUser } from "@clerk/nextjs";
 import { AiOutlinePlus, AiOutlineArrowLeft } from "react-icons/ai";
 import PurpleButton from "./PurpleButton";
 import Link from "next/link";
+import { createClient } from '@supabase/supabase-js'
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export default function TopNav() {
   const pathName = usePathname();

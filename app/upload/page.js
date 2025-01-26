@@ -12,39 +12,34 @@ export default function Upload() {
   // The `useSession()` hook will be used to get the Clerk `session` object
   const { session: clerkSession } = useSession()
   const { userId: clerkUserId } = useAuth()
-  const { user: clerkUser } = useUser()
 
-	
-	// Create a custom supabase client that injects the Clerk Supabase token into the request headers
 	function createClerkSupabaseClient() {
-	  return createClient(
-	    process.env.NEXT_PUBLIC_SUPABASE_URL,
-	    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-	    {
-	      global: {
-	        // Get the custom Supabase token from Clerk
-	        fetch: async (url, options = {}) => {
-		        // The Clerk `session` object has the getToken() method      
-	          const clerkToken = await clerkSession?.getToken({
-		          // Pass the name of the JWT template you created in the Clerk Dashboard
-		          // For this tutorial, you named it 'supabase'
-	            template: 'supabase',
-	          })
-	          
-	          // Insert the Clerk Supabase token into the headers
-		        const headers = new Headers(options?.headers)
-	          headers.set('Authorization', `Bearer ${clerkToken}`)
-	          
-	          // Call the default fetch
-	          return fetch(url, {
-	            ...options,
-	            headers,
-	          })
-	        },
-	      },
-	    },
-	  )
-	}
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          // Get the custom Supabase token from Clerk
+          fetch: async (url, options = {}) => {
+            // The Clerk `session` object has the getToken() method      
+            const clerkToken = await clerkSession?.getToken({
+              template: 'supabase',
+            })
+            
+            // Insert the Clerk Supabase token into the headers
+            const headers = new Headers(options?.headers)
+            headers.set('Authorization', `Bearer ${clerkToken}`)
+            
+            // Call the default fetch
+            return fetch(url, {
+              ...options,
+              headers,
+            })
+          },
+        },
+      },
+    )
+  }
 
   const [file, setFile] = React.useState(null)
   const [fileName, setFileName] = React.useState('')
@@ -89,6 +84,8 @@ export default function Upload() {
       .insert([
         {
           user_id: clerkUserId,
+          first_name: clerkSession?.user?.firstName,
+          last_name: clerkSession?.user?.lastName,
           video_url: publicUrl,
           likes: 0,
           comments: 0,
