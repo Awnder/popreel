@@ -5,7 +5,27 @@ import {
   ChatBubbleBottomCenterIcon,
   ShareIcon,
 } from "@heroicons/react/24/outline";
-import CommentBar from "./CommentBar";
+
+function createRipple(event) {
+  const button = event.currentTarget;
+  const circle = document.createElement("span");
+
+  const diameter = Math.max(button.clientWidth, button.clientHeight);
+  const radius = diameter / 2;
+
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+  circle.style.top = `${event.clientY - button.offsetTop - radius}px`;
+  circle.classList.add("ripple");
+
+  const ripple = button.getElementsByClassName("ripple")[0];
+
+  if (ripple) {
+    ripple.remove();
+  }
+
+  button.appendChild(circle);
+}
 
 export default function VideoPlayer({
   src,
@@ -82,15 +102,21 @@ export default function VideoPlayer({
           muted
         />
         {/* Button Container */}
-        <div className="absolute right-8 top-1/2 transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
+        <div className="absolute right-8 top-[calc(46%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
           {/* Like Button */}
-          <button className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
-            <HandThumbUpIcon className="w-6 h-6" />
+          <button
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden"
+            onClick={(e) => createRipple(e)}
+          >
+            <HandThumbUpIcon className="w-6 h-6 text-white" />
           </button>
 
           {/* Dislike Button */}
-          <button className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition">
-            <HandThumbDownIcon className="w-6 h-6" />
+          <button
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden"
+            onClick={(e) => createRipple(e)}
+          >
+            <HandThumbDownIcon className="w-6 h-6 text-white" />
           </button>
 
           {/* Comment Button */}
