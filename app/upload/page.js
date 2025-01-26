@@ -1,15 +1,19 @@
 'use client'
 
 import React from 'react'
-import { useSession } from '@clerk/nextjs'
+import { useSession, useUser, useAuth } from '@clerk/nextjs'
 import { createClient } from '@supabase/supabase-js'
 import { BiSolidCloudUpload } from 'react-icons/bi'
 import { AiOutlineClose, AiOutlinePlus } from 'react-icons/ai'
 import PurpleButton from '../components/PurpleButton'
 
+
 export default function Upload() {
   // The `useSession()` hook will be used to get the Clerk `session` object
-  const { session } = useSession()
+  const { session: clerkSession } = useSession()
+  const { userId: clerkUserId } = useAuth()
+  const { user: clerkUser } = useUser()
+
 	
 	// Create a custom supabase client that injects the Clerk Supabase token into the request headers
 	function createClerkSupabaseClient() {
@@ -21,7 +25,7 @@ export default function Upload() {
 	        // Get the custom Supabase token from Clerk
 	        fetch: async (url, options = {}) => {
 		        // The Clerk `session` object has the getToken() method      
-	          const clerkToken = await session?.getToken({
+	          const clerkToken = await clerkSession?.getToken({
 		          // Pass the name of the JWT template you created in the Clerk Dashboard
 		          // For this tutorial, you named it 'supabase'
 	            template: 'supabase',
@@ -63,15 +67,38 @@ export default function Upload() {
   }
   
   const uploadVideo = async () => {
-    const supabase_client = createClerkSupabaseClient()
+    const supabaseClient = createClerkSupabaseClient()
+
+    let fileurl = `${Date.now()}-${fileName}`
+
+    const { error: upsertError } = await supabaseClient.storage
+      .from('videos-bucket')
+      .upload(fileurl, file)
   
-    const { data, error } = await supabase_client.storage.from('videos').upload(`${fileUrl}-${Date.now()}-${fileName}`, file)
-  
-    if (error) {
-      console.error('upload failed:', error.message)
-    } else {
-      console.log('upload successful:', data)
-      clearVideo()
+    if (upsertError) {
+      console.error('upload failed:', upsertError.message)
+      return
+    }
+
+    clearVideo()
+
+    const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileurl)
+
+    const { error: insertError } = await supabaseClient
+      .from('videos')
+      .insert([
+        {
+          user_id: clerkUserId,
+          video_url: publicUrl,
+          likes: 0,
+          comments: 0,
+          embeddings: null,
+        },
+      ])
+    
+    if (insertError) {
+      console.error('insert failed:', insertError.message)
+      return
     }
   }
 
