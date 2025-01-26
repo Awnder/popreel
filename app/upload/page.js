@@ -1,47 +1,102 @@
 'use client'
 
 import React from 'react'
+import { useSession, useUser, useAuth } from '@clerk/nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { BiSolidCloudUpload } from 'react-icons/bi'
-import PurpleButton from '../components/PurpleButton'
 import { AiOutlineClose, AiOutlinePlus } from 'react-icons/ai'
+import PurpleButton from '../components/PurpleButton'
+
 
 export default function Upload() {
-  
-  const [fileUrl, setFileUrl] = React.useState(null)
-  const [fileDate, setFileDate] = React.useState(null)
+  // The `useSession()` hook will be used to get the Clerk `session` object
+  const { session: clerkSession } = useSession()
+  const { userId: clerkUserId } = useAuth()
+
+	function createClerkSupabaseClient() {
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: {
+          // Get the custom Supabase token from Clerk
+          fetch: async (url, options = {}) => {
+            // The Clerk `session` object has the getToken() method      
+            const clerkToken = await clerkSession?.getToken({
+              template: 'supabase',
+            })
+            
+            // Insert the Clerk Supabase token into the headers
+            const headers = new Headers(options?.headers)
+            headers.set('Authorization', `Bearer ${clerkToken}`)
+            
+            // Call the default fetch
+            return fetch(url, {
+              ...options,
+              headers,
+            })
+          },
+        },
+      },
+    )
+  }
+
+  const [file, setFile] = React.useState(null)
+  const [fileName, setFileName] = React.useState('')
+  const [fileUrl, setFileUrl] = React.useState('')
 
   const onVideoChange = (event) => {
     const files = event.target.files
 
     if (files && files.length > 0) {
-      const file = files[0]
-      console.log(file)
-      setFileUrl(file.name + file + Date.now() )
-      setFileDate(Date.now())
+      setFile(files[0])
+      setFileName(files[0].name)
+      setFileUrl(URL.createObjectURL(files[0]))
     }
   }
 
-  React.useEffect(() => {
-    console.log(fileUrl)
-  }, [fileUrl])
-
   const clearVideo = () => {
-    setFileUrl(null)
-    setFileDate(null)
+    setFile(null)
+    setFileName('')
+    setFileUrl('')
   }
   
-  const uploadVideo = async (file) => {
-    console.log(file)
-    // const cookieStore = await cookies()
-    // const supabase = createClient(cookieStore)
+  const uploadVideo = async () => {
+    const supabaseClient = createClerkSupabaseClient()
+
+    let fileurl = `${Date.now()}-${fileName}`
+
+    const { error: upsertError } = await supabaseClient.storage
+      .from('videos-bucket')
+      .upload(fileurl, file)
   
-    // const { data, error } = await supabase.storage.from('videos').upload(`${Date.now()}-${file.name}`, file)
-  
-    // if (error) {
-    //   console.error('upload failed:', error.message)
-    // } else {
-    //   console.log('upload successful:', data)
-    // }
+    if (upsertError) {
+      console.error('upload failed:', upsertError.message)
+      return
+    }
+
+    clearVideo()
+
+    const { data: { publicUrl } } = supabaseClient.storage.from('videos').getPublicUrl(fileurl)
+
+    const { error: insertError } = await supabaseClient
+      .from('videos')
+      .insert([
+        {
+          user_id: clerkUserId,
+          first_name: clerkSession?.user?.firstName,
+          last_name: clerkSession?.user?.lastName,
+          video_url: publicUrl,
+          likes: 0,
+          comments: 0,
+          embeddings: null,
+        },
+      ])
+    
+    if (insertError) {
+      console.error('insert failed:', insertError.message)
+      return
+    }
   }
 
   return (
@@ -59,7 +114,7 @@ export default function Upload() {
                     <span className="font-medium text-white px-2">Clear Video</span>
                   </div>
                 </PurpleButton>
-                <PurpleButton onClick={clearVideo}>
+                <PurpleButton onClick={uploadVideo}>
                   <div className="flex items-center">
                     <AiOutlinePlus color="white" size={20} />
                     <span className="font-medium text-white px-2">Upload Video</span>
