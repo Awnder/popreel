@@ -44,7 +44,8 @@ const videos = [
 import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
-import { useState } from "react";
+import { createClient } from "../utils/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [showComments, setShowComments] = useState(false);
@@ -61,8 +62,19 @@ export default function Home() {
     setCurrentVideoId(videoID);
   };
 
+  useEffect(() => {
+    const supabase = createClient();
+    // show tables
+    const getVideos = async () => {
+      const { data: videos, error } = await supabase.from("videos").select();
+      if (error) console.log("error", error);
+      console.log("videos", videos);
+    };
+    getVideos();
+  }, []);
+
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white pt-[60px]">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
       <LeftSideBar />
       <main className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-none no-scrollbar">
         {videos.map((video, index) => (

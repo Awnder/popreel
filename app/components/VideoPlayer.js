@@ -124,7 +124,7 @@ export default function VideoPlayer({
             className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition"
             onClick={handleCommentBarClick}
           >
-            <ChatBubbleBottomCenterIcon className="w-6 h-6" />
+            <ChatBubbleBottomCenterIcon className="w-6 h-6 text-white" />
           </button>
 
           {/* Share Button */}
@@ -132,7 +132,7 @@ export default function VideoPlayer({
             className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition"
             onClick={handleShareClick}
           >
-            <ShareIcon className="w-6 h-6" />
+            <ShareIcon className="w-6 h-6 text-white" />
           </button>
         </div>
         {/* Pop-up message when link is copied */}

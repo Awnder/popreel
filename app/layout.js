@@ -17,7 +17,7 @@ export default function RootLayout({ children }) {
           <header>
             <TopNav />
           </header>
-          <main>{children}</main>
+          <main className="pt-[60px]">{children}</main>
         </body>
       </html>
     </ClerkProvider>
