@@ -65,9 +65,9 @@ const mockComments = [
   },
 ];
 
-export default function CommentBar({ videoID, onClose }) {
-  console.log(videoID);
-  const [comments, setComments] = useState(mockComments);
+export default function CommentBar({ fetchedComments, videoID, onClose }) {
+  // console.log(videoID);
+  const [comments, setComments] = useState(fetchedComments);
   const [newComment, setNewComment] = useState("");
 
   const handleAddComment = () => {
@@ -98,8 +98,11 @@ export default function CommentBar({ videoID, onClose }) {
 
         {/* Display Comments */}
         <div className="space-y-4 w-full px-2 flex-1 overflow-y-auto mt-4">
-          {comments
-            .filter((comment) => comment.videoID === videoID)
+          {!comments ? (
+            <div className="text-white text-center">No comments yet</div>
+          ) : (
+            comments
+            // .filter((comment) => comment.videoID === videoID)
             .map((comment, index) => (
               <div
                 key={index}
@@ -107,28 +110,29 @@ export default function CommentBar({ videoID, onClose }) {
               >
                 {/* User Avatar */}
                 <div className="flex items-center justify-center w-10 h-10 bg-indigo-500 text-white rounded-full">
-                  <span className="text-lg font-bold">{comment.user[0]}</span>
+                  <span className="text-lg font-bold">{comment.user_id}</span>
                 </div>
 
                 {/* Comment Text and Timestamp */}
                 <div className="flex flex-col text-sm w-full">
                   {/* Username */}
                   <div className="text-black font-semibold mb-1">
-                    {comment.user}
+                    {comment.user_id}
                   </div>
 
                   {/* Comment */}
                   <span className="text-black break-words px-2">
-                    {comment.comment}
+                    {comment.comment_text}
                   </span>
 
                   {/* Timestamp */}
                   <div className="text-gray-400 text-[10px] mt-2 ml-auto self-end">
-                    {format(new Date(comment.timestamp), "MMM dd, yyyy h:mm a")}
+                    {format(new Date(comment.created_at), "MMM dd, yyyy h:mm a")}
                   </div>
                 </div>
               </div>
-            ))}
+            ))
+          )}
         </div>
 
         {/* Add Comment Input */}
