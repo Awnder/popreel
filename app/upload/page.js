@@ -12,7 +12,6 @@ import { set } from "date-fns";
 export default function Upload() {
   // The `useSession()` hook will be used to get the Clerk `session` object
   const { session: clerkSession } = useSession();
-  const { userId: clerkUserId } = useAuth();
 
   // function createClerkSupabaseClient() {
   //   return createClient(
@@ -110,7 +109,6 @@ export default function Upload() {
         .from("videos")
         .insert([
           {
-            user_id: clerkUserId,
             first_name: clerkSession?.user?.firstName,
             last_name: clerkSession?.user?.lastName,
             video_url: publicUrl,
