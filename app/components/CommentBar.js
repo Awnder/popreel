@@ -98,18 +98,13 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
     setComments(commentData);
   };
 
-  const handleOnClose = () => {
-    setComments([]);
-    onClose();
-  };
-
   return (
     <div className="fixed right-0 h-full w-1/6 bg-gradient-to-tr from-indigo-950 via-black to-indigo-950 z-20 shadow-lg pb-12 mt-1">
       <div className="flex flex-col items-center justify-start py-4 h-full">
         {/* Header with Close Button */}
         <div className="w-full flex justify-between items-center px-4 pb-2 border-b border-gray-700">
           <h2 className="text-lg font-bold">Comments</h2>
-          <button onClick={handleOnClose} className="text-white px-3 py-1 rounded-lg">
+          <button onClick={onClose} className="text-white px-3 py-1 rounded-lg">
             <XCircleIcon className="w-6 h-6" />
           </button>
         </div>
@@ -120,7 +115,7 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
             <div className="text-white text-center">No comments yet</div>
           ) : (
             comments
-            // .filter((comment) => comment.videoID === videoID)
+            .filter((comment) => comment.video_id === videoID)
             .map((comment, index) => (
               <div
                 key={index}

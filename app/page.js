@@ -33,18 +33,12 @@ export default function Home() {
       const { data, error } = await supabase
         .from("comments")
         .select("*")
-        .eq("video_id", currentVideoId);
 
       if (error) console.log("no video with that id", error);
 
       setFetchedComments(data);
     } 
     fetchComments();
-  };
-
-  const handleCommentBarOnClose = () => {
-    setShowComments(false);
-    fetchedComments([]);
   };
 
   // Callback to update the currentVideoId in Home
@@ -121,7 +115,7 @@ export default function Home() {
         <CommentBar
           videoID={currentVideoId} // Pass the current video ID to CommentBar
           fetchedComments={fetchedComments} // Pass the fetched comments to CommentBar
-          onClose={handleCommentBarOnClose} // Allow closing the CommentBar
+          onClose={() => setShowComments(false)} // Allow closing the CommentBar
         />
       )}
     </div>
