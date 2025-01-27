@@ -19,8 +19,8 @@ export default function VideoRenderComponent() {
   return (
     <ul>
       {videos.map((video) => (
-        <li>
-          <video src={video.url} controls />
+        <li key={video.id}>
+          <video src={video.url}controls />
         </li>
       ))}
     </ul>

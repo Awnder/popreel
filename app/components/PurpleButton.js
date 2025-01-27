@@ -10,4 +10,5 @@ const PurpleButton = React.forwardRef((props, ref) => {
   );
 });
 
+PurpleButton.displayName = 'PurpleButton';
 export default PurpleButton;
