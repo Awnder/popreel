@@ -18,8 +18,8 @@ export default function VideoRenderComponent() {
 
   return (
     <ul>
-      {videos.map((video) => (
-        <li key={video.id}>
+      {videos.map((video, key) => (
+        <li key={key}>
           <video src={video.url}controls />
         </li>
       ))}
