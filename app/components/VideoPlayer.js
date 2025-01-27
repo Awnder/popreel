@@ -207,10 +207,7 @@ export default function VideoPlayer({
           {/* Comment Button */}
           <button
             className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
-            onClick={(e) => {
-              e.preventDefault();
-              handleCommentBarClick();
-            }}
+            onClick={handleCommentBarClick}
           >
             <ChatBubbleBottomCenterIcon className="w-6 h-6 text-white" />
           </button>

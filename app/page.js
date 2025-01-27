@@ -124,12 +124,7 @@ export default function Home() {
               supabase={supabase}
             />
             {/* Render CommentBar only if showComments matches the videoID */}
-            {showComments && (
-              <CommentBar
-                videoID={currentVideoId}
-                fetchedComments={fetchedComments}
-              />
-            )}
+            
           </div>
         ))}
       </main>
@@ -139,6 +134,8 @@ export default function Home() {
           videoID={currentVideoId} // Pass the current video ID to CommentBar
           fetchedComments={fetchedComments} // Pass the fetched comments to CommentBar
           onClose={() => setShowComments(false)} // Allow closing the CommentBar
+          clerkSession={clerkSession}
+          supabase={supabase}
         />
       )}
     </div>
