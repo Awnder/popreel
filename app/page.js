@@ -1,23 +1,5 @@
 "use client";
 
-// import { createClient } from '../utils/supabase/server'
-// import { cookies } from 'next/headers'
-
-// export default async function Page() {
-//   const cookieStore = await cookies()
-//   const supabase = createClient(cookieStore)
-
-//   const { data: todos } = await supabase.from('videos').select()
-
-//   return (
-//     <ul>
-//       {todos?.map((todo) => (
-//         <li>{todo}</li>
-//       ))}
-//     </ul>
-//   )
-// }
-
 const videos = [
   {
     src: "https://www.w3schools.com/html/mov_bbb.mp4",
@@ -44,10 +26,14 @@ const videos = [
 import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
-import { createClient } from "../utils/supabase/client";
+// import { createClient } from "../utils/supabase/client";
 import { useEffect, useState } from "react";
+import { createClerkSupabaseClient } from "../utils/supabase/client";
+import { useSession } from "@clerk/nextjs";
 
 export default function Home() {
+  const { session: clerkSession } = useSession();
+  
   const [showComments, setShowComments] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
 
@@ -63,7 +49,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const supabase = createClient();
+    const supabase = createClerkSupabaseClient(clerkSession);
     // show tables
     const getVideos = async () => {
       const { data: videos, error } = await supabase.from("videos").select();

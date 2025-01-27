@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { BiSolidCloudUpload } from "react-icons/bi";
 import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
-import { createClerkSupabaseClient } from "../../utils/supabase/client";
+import { createClerkSupabaseClient } from "../../utils/supabase/client.ts";
 
 
 export default function Upload() {
@@ -65,7 +65,7 @@ export default function Upload() {
   };
 
   const uploadVideo = async () => {
-    const supabaseClient = createClerkSupabaseClient();
+    const supabaseClient = createClerkSupabaseClient(clerkSession);
 
     try {
       setIsLoading(true); // Start loading state
