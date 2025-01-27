@@ -1,39 +1,24 @@
 "use client";
 
-const videos = [
-  {
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    id: "1",
-  },
-  {
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    id: "2",
-  },
-  {
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    id: "3",
-  },
-  {
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    id: "4",
-  },
-  {
-    src: "https://www.w3schools.com/html/mov_bbb.mp4",
-    id: "5",
-  },
-];
-
 import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
 // import { createClient } from "../utils/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClerkSupabaseClient } from "../utils/supabase/client";
 import { useSession } from "@clerk/nextjs";
 
 export default function Home() {
+  const [videos, setVideos] = useState([]);
   const { session: clerkSession } = useSession();
-  
+  const firstVideoRef = useRef(null);
+
+  const handleScrollToFirstVideo = () => {
+    if (firstVideoRef.current) {
+      firstVideoRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const [showComments, setShowComments] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
 
@@ -49,25 +34,57 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (!clerkSession) return;
     const supabase = createClerkSupabaseClient(clerkSession);
     // show tables
     const getVideos = async () => {
       const { data: videos, error } = await supabase.from("videos").select();
-      if (error) console.log("error", error);
+      if (error) console.log("error:", error.message);
       console.log("videos", videos);
+
+      const videoData = videos.map((video) => ({
+        src: video.video_url,
+        id: video.id,
+      }));
+      setVideos(videoData);
     };
     getVideos();
-  }, []);
+  }, [clerkSession]);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
       <LeftSideBar />
+
       <main className="flex-1 overflow-y-scroll snap-y snap-mandatory scrollbar-none no-scrollbar">
+        {/* Intro Section */}
+        <div
+          className="w-full h-screen snap-center flex justify-center items-center bg-inherit"
+          htmlFor={`intro-section`}
+        >
+          <div className="flex flex-col justify-center items-center text-center">
+            <h1 className="text-4xl font-bold text-white animate-fadeInUp">
+              <span className="block text-indigo-500 mb-8">
+                Welcome to PopReeeel!
+              </span>
+            </h1>
+
+            {/* Scroll Down Button */}
+            <button
+              onClick={handleScrollToFirstVideo}
+              className="mt-8 px-6 py-3 bg-indigo-900 text-indigo-100 font-semibold rounded-full shadow-lg hover:bg-indigo-500 transition"
+            >
+              Start Watching!
+            </button>
+          </div>
+        </div>
+
+        {/* Video Sections */}
         {videos.map((video, index) => (
           <div
             key={index}
-            className="w-full h-screen snap-center flex justify-center items-center bg-inherit "
+            className="w-full h-screen snap-center flex justify-center items-center bg-inherit"
             htmlFor={`video-${video.id}`}
+            ref={index === 0 ? firstVideoRef : null} // Set reference for the first video
           >
             <VideoPlayer
               src={video.src}

@@ -34,13 +34,16 @@ export default function VideoPlayer({
   updateCurrentVideoId,
 }) {
   const videoRef = useRef(null);
+  const [error, setError] = useState(null); // State to track video errors
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (videoRef.current) {
           if (entry.isIntersecting) {
-            videoRef.current.play(); // Play video when it comes into view
+            videoRef.current
+              .play()
+              .catch((err) => setError("Failed to play video"));
             updateCurrentVideoId(videoID); // Update the current video ID in Home
           } else {
             videoRef.current.pause(); // Pause video when it goes out of view
@@ -66,7 +69,7 @@ export default function VideoPlayer({
 
   const handleVideoClick = () => {
     if (videoRef.current.paused) {
-      videoRef.current.play(); // Play video on click
+      videoRef.current.play().catch((err) => setError("Failed to play video"));
     } else {
       videoRef.current.pause(); // Pause video on click
     }
@@ -90,7 +93,6 @@ export default function VideoPlayer({
   return (
     <div className="w-2/3 h-full flex justify-center items-center relative bg-inherit">
       <div className="w-5/6 relative">
-        {" "}
         {/* Add relative to the parent container */}
         <video
           ref={videoRef}
@@ -99,7 +101,6 @@ export default function VideoPlayer({
           className="object-cover w-full mt-[-40px]" // Added negative margin to move the video up
           autoPlay
           loop
-          muted
         />
         {/* Button Container */}
         <div className="absolute right-8 top-[calc(46%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
@@ -135,6 +136,7 @@ export default function VideoPlayer({
             <ShareIcon className="w-6 h-6 text-white" />
           </button>
         </div>
+
         {/* Pop-up message when link is copied */}
         {copied && (
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 bg-indigo-950 text-white rounded-lg py-2 px-4 shadow-md">

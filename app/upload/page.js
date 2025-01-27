@@ -7,7 +7,7 @@ import { BiSolidCloudUpload } from "react-icons/bi";
 import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
 import { createClerkSupabaseClient } from "../../utils/supabase/client.ts";
-
+import { set } from "date-fns";
 
 export default function Upload() {
   // The `useSession()` hook will be used to get the Clerk `session` object
@@ -47,6 +47,7 @@ export default function Upload() {
   const [fileUrl, setFileUrl] = React.useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const onVideoChange = (event) => {
     const files = event.target.files;
@@ -70,6 +71,7 @@ export default function Upload() {
     try {
       setIsLoading(true); // Start loading state
       setErrorMessage(""); // Reset previous errors
+      setSuccessMessage(""); // Reset previous success messages
 
       let fileurl = `${Date.now()}-${fileName}`;
       console.log("fileurl", fileurl);
@@ -91,7 +93,7 @@ export default function Upload() {
       // Get the public URL of the uploaded video
       const {
         data: { publicUrl },
-      } = supabaseClient.storage.from("videos").getPublicUrl(fileurl);
+      } = supabaseClient.storage.from("videos-bucket").getPublicUrl(fileurl);
 
       console.log("publicUrl", publicUrl);
 
@@ -118,7 +120,7 @@ export default function Upload() {
         return;
       }
       console.log("video uploaded to db");
-
+      setSuccessMessage("Video uploaded successfully!");
       clearVideo(); // Clear the video state after successful upload
     } catch (error) {
       if (error instanceof Error) {
@@ -202,7 +204,12 @@ export default function Upload() {
             />
           </label>
           {errorMessage && (
-            <p className="text-red-500 text-sm">{errorMessage}</p>
+            <p className="text-red-500 text-sm font-semibold">{errorMessage}</p>
+          )}
+          {successMessage && (
+            <p className="text-green-500 text-sm font-semibold">
+              {successMessage}
+            </p>
           )}
         </div>
       )}
