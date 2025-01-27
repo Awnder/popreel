@@ -6,39 +6,41 @@ import { createClient } from "@supabase/supabase-js";
 import { BiSolidCloudUpload } from "react-icons/bi";
 import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
+import { createClerkSupabaseClient } from "../../utils/supabase/client";
+
 
 export default function Upload() {
   // The `useSession()` hook will be used to get the Clerk `session` object
   const { session: clerkSession } = useSession();
   const { userId: clerkUserId } = useAuth();
 
-  function createClerkSupabaseClient() {
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        global: {
-          // Get the custom Supabase token from Clerk
-          fetch: async (url, options = {}) => {
-            // The Clerk `session` object has the getToken() method
-            const clerkToken = await clerkSession?.getToken({
-              template: "supabase",
-            });
+  // function createClerkSupabaseClient() {
+  //   return createClient(
+  //     process.env.NEXT_PUBLIC_SUPABASE_URL,
+  //     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  //     {
+  //       global: {
+  //         // Get the custom Supabase token from Clerk
+  //         fetch: async (url, options = {}) => {
+  //           // The Clerk `session` object has the getToken() method
+  //           const clerkToken = await clerkSession?.getToken({
+  //             template: "supabase",
+  //           });
 
-            // Insert the Clerk Supabase token into the headers
-            const headers = new Headers(options?.headers);
-            headers.set("Authorization", `Bearer ${clerkToken}`);
+  //           // Insert the Clerk Supabase token into the headers
+  //           const headers = new Headers(options?.headers);
+  //           headers.set("Authorization", `Bearer ${clerkToken}`);
 
-            // Call the default fetch
-            return fetch(url, {
-              ...options,
-              headers,
-            });
-          },
-        },
-      }
-    );
-  }
+  //           // Call the default fetch
+  //           return fetch(url, {
+  //             ...options,
+  //             headers,
+  //           });
+  //         },
+  //       },
+  //     }
+  //   );
+  // }
 
   const [file, setFile] = React.useState(null);
   const [fileName, setFileName] = React.useState("");
