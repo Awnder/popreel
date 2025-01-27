@@ -1,5 +1,7 @@
 # PopReel - TikTok-Style App
 
+![popreel image](popreel-image.jpg)
+
 PopReel is a fun and engaging platform that allows users to share short videos with each other, similar to TikTok. Whether you're into dancing, comedy, or showcasing your creativity, PopReel gives you the freedom to express yourself through videos. With a sleek and user-friendly interface, you can easily browse, like, and share content with others.
 
 ---
