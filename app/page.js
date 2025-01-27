@@ -33,7 +33,8 @@ import { useSession } from "@clerk/nextjs";
 
 export default function Home() {
   const { session: clerkSession } = useSession();
-  
+
+  const [fetchedComments, setFetchedComments] = useState([]);
   const [showComments, setShowComments] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
 
@@ -59,6 +60,21 @@ export default function Home() {
     getVideos();
   }, []);
 
+  useEffect(() => {
+    const fetchComments = async () => {
+      const supabase = createClerkSupabaseClient(clerkSession);
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("video_id", currentVideoId);
+
+      if (error) console.log("no video with that id", error);
+
+      setFetchedComments(data);
+    } 
+    fetchComments();
+  }, [clerkSession])
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
       <LeftSideBar />
@@ -76,7 +92,7 @@ export default function Home() {
               updateCurrentVideoId={updateCurrentVideoId} // Pass the callback
             />
             {/* Render CommentBar only if showComments matches the videoID */}
-            {showComments && <CommentBar videoID={currentVideoId} />}
+            {showComments && <CommentBar videoID={currentVideoId} fetchedComments={fetchedComments} />}
           </div>
         ))}
       </main>
@@ -84,6 +100,7 @@ export default function Home() {
       {showComments && (
         <CommentBar
           videoID={currentVideoId} // Pass the current video ID to CommentBar
+          fetchedComments={fetchedComments} // Pass the fetched comments to CommentBar
           onClose={() => setShowComments(false)} // Allow closing the CommentBar
         />
       )}
