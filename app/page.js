@@ -4,7 +4,7 @@ import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
 // import { createClient } from "../utils/supabase/client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, use } from "react";
 import { createClerkSupabaseClient } from "../utils/supabase/client";
 import { useSession } from "@clerk/nextjs";
 
@@ -16,6 +16,7 @@ export default function Home() {
   const [fetchedComments, setFetchedComments] = useState([]);
   const [showComments, setShowComments] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState(null);
+  const [supabase, setSupabase] = useState(null);
 
   const handleScrollToFirstVideo = () => {
     if (firstVideoRef.current) {
@@ -35,37 +36,38 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (!clerkSession) return;
-    const supabase = createClerkSupabaseClient(clerkSession);
+    if (!clerkSession || !supabase) return;
     // show tables
     const getVideos = async () => {
       const { data: videos, error } = await supabase.from("videos").select();
-      if (error) console.log("error:", error.message);
-      console.log("videos", videos);
+      if (error) console.log("error fetching videos:", error.message);
+      else {
+        console.log("videos", videos);
 
-      const videoData = videos.map((video) => ({
-        src: video.video_url,
-        id: video.id,
-      }));
-      setVideos(videoData);
+        const videoData = videos.map((video) => ({
+          src: video.video_url,
+          id: video.id,
+        }));
+        setVideos(videoData);
+      }
+    };
+    const fetchComments = async () => {
+      const { data, error } = await supabase.from("comments").select();
+
+      if (error) console.log("error fetching comments:", error.message);
+      else {
+        setFetchedComments(data);
+      }
     };
     getVideos();
-  }, [clerkSession]);
+    fetchComments();
+  }, [clerkSession, supabase]);
 
   useEffect(() => {
-    const fetchComments = async () => {
-      const supabase = createClerkSupabaseClient(clerkSession);
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("video_id", currentVideoId);
-
-      if (error) console.log("no video with that id", error);
-
-      setFetchedComments(data);
-    } 
-    fetchComments();
-  }, [clerkSession])
+    if (!clerkSession) return;
+    const supabaseClient = createClerkSupabaseClient(clerkSession);
+    setSupabase(supabaseClient);
+  }, [clerkSession]);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
@@ -107,9 +109,15 @@ export default function Home() {
               videoID={video.id} // Pass the video ID to VideoPlayer
               handleCommentBarClick={handleCommentBarClick}
               updateCurrentVideoId={updateCurrentVideoId} // Pass the callback
+              supabase={supabase}
             />
             {/* Render CommentBar only if showComments matches the videoID */}
-            {showComments && <CommentBar videoID={currentVideoId} fetchedComments={fetchedComments} />}
+            {showComments && (
+              <CommentBar
+                videoID={currentVideoId}
+                fetchedComments={fetchedComments}
+              />
+            )}
           </div>
         ))}
       </main>

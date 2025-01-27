@@ -27,14 +27,80 @@ function createRipple(event) {
   button.appendChild(circle);
 }
 
+function formatNumber(num) {
+  if (num >= 1e6) return (num / 1e6).toFixed(1) + "M"; // Millions
+  if (num >= 1e3) return (num / 1e3).toFixed(1) + "K"; // Thousands
+  return num.toString(); // Less than 1000
+}
+
 export default function VideoPlayer({
   src,
   videoID,
   handleCommentBarClick,
   updateCurrentVideoId,
+  supabase,
 }) {
   const videoRef = useRef(null);
   const [error, setError] = useState(null); // State to track video errors
+  const [likes, setLikes] = useState(0);
+  const [dislikes, setDislikes] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDislikled] = useState(false);
+
+  useEffect(() => {
+    const fetchLikes = async () => {
+      const { data: likes, error: likesError } = await supabase
+        .from("videos")
+        .select("likes")
+        .eq("id", videoID);
+      setLikes(likes[0].likes);
+    };
+    const fetchDislikes = async () => {
+      const { data: dislikes, error: dislikesError } = await supabase
+        .from("videos")
+        .select("dislikes")
+        .eq("id", videoID);
+      setDislikes(dislikes[0].dislikes);
+    };
+
+    fetchLikes();
+    fetchDislikes();
+  }, [videoID]);
+
+  const handleLikeClick = async () => {
+    if (liked) return;
+
+    const { data: update, error: updateError } = await supabase
+      .from("videos")
+      .update({ likes: likes + 1 })
+      .eq("id", videoID)
+      .select();
+
+    if (error) {
+      console.error("Error updating likes:", error);
+    } else {
+      setLiked(true);
+      setDislikled(false);
+      setLikes(likes + 1);
+    }
+  };
+
+  const handleDislikeClick = async () => {
+    if (disliked) return;
+    const { data: update, error: updateError } = await supabase
+      .from("videos")
+      .update({ dislikes: dislikes + 1 })
+      .eq("id", videoID)
+      .select();
+
+    if (error) {
+      console.error("Error updating dislikes:", error);
+    } else {
+      setLiked(false);
+      setDislikled(true);
+      setDislikes(dislikes + 1);
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -106,32 +172,56 @@ export default function VideoPlayer({
         <div className="absolute right-8 top-[calc(46%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
           {/* Like Button */}
           <button
-            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden"
-            onClick={(e) => createRipple(e)}
+            className={`bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden ${
+              liked ? "scale-110" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              createRipple(e);
+              handleLikeClick();
+            }}
           >
-            <HandThumbUpIcon className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3">
+              <HandThumbUpIcon className="w-6 h-6 text-white" />
+              <span className="text-white">{formatNumber(likes)}</span>
+            </div>
           </button>
 
           {/* Dislike Button */}
           <button
-            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden"
-            onClick={(e) => createRipple(e)}
+            className={`bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden ${
+              disliked ? "scale-110" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              createRipple(e);
+              handleDislikeClick();
+            }}
           >
-            <HandThumbDownIcon className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3">
+              <HandThumbDownIcon className="w-6 h-6 text-white" />
+              <span className="text-white">{formatNumber(dislikes)}</span>
+            </div>
           </button>
 
           {/* Comment Button */}
           <button
-            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition"
-            onClick={handleCommentBarClick}
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
+            onClick={(e) => {
+              e.preventDefault();
+              handleCommentBarClick();
+            }}
           >
             <ChatBubbleBottomCenterIcon className="w-6 h-6 text-white" />
           </button>
 
           {/* Share Button */}
           <button
-            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition"
-            onClick={handleShareClick}
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
+            onClick={(e) => {
+              e.preventDefault();
+              handleShareClick();
+            }}
           >
             <ShareIcon className="w-6 h-6 text-white" />
           </button>

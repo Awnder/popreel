@@ -52,6 +52,14 @@ export default function Upload() {
   const onVideoChange = (event) => {
     const files = event.target.files;
 
+    // 30mb file size limit
+    if (files[0].size > 30000000) {
+      setErrorMessage(
+        "File size too large. Please upload a file less than 30MB."
+      );
+      return;
+    }
+
     if (files && files.length > 0) {
       setFile(files[0]);
       setFileName(files[0].name);
@@ -182,7 +190,7 @@ export default function Upload() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center w-full pb-14">
+        <div className="flex flex-col items-center justify-center w-full ">
           <h1 className="text-3xl font-semibold text-purple-600">
             Upload a Video
           </h1>
