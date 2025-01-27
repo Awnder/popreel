@@ -70,19 +70,37 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
   const [comments, setComments] = useState(fetchedComments);
   const [newComment, setNewComment] = useState("");
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim()) {
       setComments((prevComments) => [
-        ...prevComments,
+        prevComments,
         {
-          user: "Me",
-          videoID,
-          comment: newComment,
-          timestamp: new Date(),
+          user_id: clerkSession.user.id,
+          video_id, videoID,
+          comment_text: newComment,
         },
       ]);
       setNewComment("");
     }
+
+    const { error: insertError } = await supabase
+      .from("comments")
+      .insert([
+        {
+          user_id: clerkSession.user.id,
+          video_id: videoID,
+          comment_text: newComment,
+        },
+      ]);
+
+    if (insertError) console.error("Error adding comment:", insertError.message);
+
+    setComments(commentData);
+  };
+
+  const handleOnClose = () => {
+    setComments([]);
+    onClose();
   };
 
   return (
@@ -91,7 +109,7 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
         {/* Header with Close Button */}
         <div className="w-full flex justify-between items-center px-4 pb-2 border-b border-gray-700">
           <h2 className="text-lg font-bold">Comments</h2>
-          <button onClick={onClose} className="text-white px-3 py-1 rounded-lg">
+          <button onClick={handleOnClose} className="text-white px-3 py-1 rounded-lg">
             <XCircleIcon className="w-6 h-6" />
           </button>
         </div>
