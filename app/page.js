@@ -28,6 +28,18 @@ export default function Home() {
     // Toggle visibility based on videoID
     setShowComments((prev) => (prev ? false : videoID));
     setCurrentVideoId(videoID); // Update the current video ID for comments
+  
+    const fetchComments = async () => {
+      const supabase = createClerkSupabaseClient(clerkSession);
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+
+      if (error) console.log("no video with that id", error);
+
+      setFetchedComments(data);
+    } 
+    fetchComments();
   };
 
   // Callback to update the currentVideoId in Home

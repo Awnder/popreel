@@ -70,19 +70,32 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
   const [comments, setComments] = useState(fetchedComments);
   const [newComment, setNewComment] = useState("");
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim()) {
       setComments((prevComments) => [
-        ...prevComments,
+        prevComments,
         {
-          user: "Me",
-          videoID,
-          comment: newComment,
-          timestamp: new Date(),
+          user_id: clerkSession.user.id,
+          video_id, videoID,
+          comment_text: newComment,
         },
       ]);
       setNewComment("");
     }
+
+    const { error: insertError } = await supabase
+      .from("comments")
+      .insert([
+        {
+          user_id: clerkSession.user.id,
+          video_id: videoID,
+          comment_text: newComment,
+        },
+      ]);
+
+    if (insertError) console.error("Error adding comment:", insertError.message);
+
+    setComments(commentData);
   };
 
   return (
@@ -102,7 +115,7 @@ export default function CommentBar({ fetchedComments, videoID, onClose }) {
             <div className="text-white text-center">No comments yet</div>
           ) : (
             comments
-            // .filter((comment) => comment.videoID === videoID)
+            .filter((comment) => comment.video_id === videoID)
             .map((comment, index) => (
               <div
                 key={index}
