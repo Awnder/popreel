@@ -5,7 +5,8 @@ const nextConfig = {
     "page.ts",
     "page.tsx",
     "ts",
-  ]
+  ],
+  basePath: "/app",
 }
 
 module.exports = nextConfig
