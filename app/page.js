@@ -3,8 +3,7 @@
 import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
-// import { createClient } from "../utils/supabase/client";
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClerkSupabaseClient } from "../utils/supabase/client";
 import { useSession } from "@clerk/nextjs";
 

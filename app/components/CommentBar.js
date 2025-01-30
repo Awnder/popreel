@@ -2,69 +2,6 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { PaperAirplaneIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
-const mockComments = [
-  {
-    videoID: "1",
-    user: "Usesadsadr1",
-    comment: "This is a comment on video 1",
-    timestamp: new Date("2025-01-25T12:00:00Z"),
-  },
-  {
-    videoID: "1",
-    user: "User Last Name2",
-    comment: "This is another comment on video 1",
-    timestamp: new Date("2025-01-25T12:05:00Z"),
-  },
-  {
-    videoID: "2",
-    user: "User1",
-    comment: "This is a comment on video 2",
-    timestamp: new Date("2025-01-25T12:00:00Z"),
-  },
-  {
-    videoID: "2",
-    user: "User2",
-    comment: "This is another comment on video 2",
-    timestamp: new Date("2025-01-25T12:05:00Z"),
-  },
-  {
-    videoID: "3",
-    user: "User1",
-    comment: "This is a comment on video 3",
-    timestamp: new Date("2025-01-25T12:00:00Z"),
-  },
-  {
-    videoID: "3",
-    user: "User2",
-    comment: "This is another comment on video 3",
-    timestamp: new Date("2025-01-25T12:05:00Z"),
-  },
-  {
-    videoID: "4",
-    user: "User1",
-    comment: "This is a comment on video 4",
-    timestamp: new Date("2025-01-25T12:00:00Z"),
-  },
-  {
-    videoID: "4",
-    user: "User2",
-    comment: "This is another comment on video 4",
-    timestamp: new Date("2025-01-25T12:05:00Z"),
-  },
-  {
-    videoID: "5",
-    user: "User1",
-    comment: "This is a comment on video 5",
-    timestamp: new Date("2025-01-25T12:00:00Z"),
-  },
-  {
-    videoID: "5",
-    user: "User2",
-    comment: "This is another comment on video 5",
-    timestamp: new Date("2025-01-25T12:05:00Z"),
-  },
-];
-
 export default function CommentBar({
   fetchedComments,
   videoID,
