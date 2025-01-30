@@ -8,6 +8,7 @@ import Link from "next/link";
 import { createClient } from '@supabase/supabase-js'
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import InterestModal from "./InterestModal";
 
 export default function TopNav() {
   const pathName = usePathname();
@@ -47,6 +48,7 @@ export default function TopNav() {
               height={35}
               className="rounded-full"
             />
+            <InterestModal />
           </SignedOut>
         </div>
       </div>
