@@ -24,8 +24,8 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(onboardingUrl)
   }
 
-  // If the user is logged in and the route is protected, let them view.
-  if (userId && isProtectedRoute(req)) return NextResponse.next()
+  // If the user is logged in and (the route is protected or the route is onboarding) let them view.
+  if (userId && (isProtectedRoute(req) || isOnboardingRoute(req))) return NextResponse.next()
 
   // if (isProtectedRoute(req)) await auth.protect()
 });
