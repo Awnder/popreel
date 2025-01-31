@@ -3,10 +3,9 @@
 import VideoPlayer from "./components/VideoPlayer";
 import LeftSideBar from "./components/LeftSideBar";
 import CommentBar from "./components/CommentBar";
-// import { createClient } from "../utils/supabase/client";
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClerkSupabaseClient } from "../utils/supabase/client";
-import { useSession } from "@clerk/nextjs";
+import { useSession, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -99,12 +98,24 @@ export default function Home() {
             </h1>
 
             {/* Scroll Down Button */}
-            <button
-              onClick={handleScrollToFirstVideo}
-              className="mt-8 px-6 py-3 bg-indigo-900 text-indigo-100 font-semibold rounded-full shadow-lg hover:bg-indigo-500 transition"
-            >
-              Start Watching!
-            </button>
+            <SignedIn>
+              <button
+                onClick={handleScrollToFirstVideo}
+                className="mt-8 px-6 py-3 bg-indigo-900 text-indigo-100 font-semibold rounded-full shadow-lg hover:bg-indigo-500 transition"
+              >
+                Start Watching!
+              </button>
+            </SignedIn>
+            <SignedOut>
+              <SignInButton>
+                <button
+                  className="mt-8 px-6 py-3 bg-indigo-900 text-indigo-100 font-semibold rounded-full shadow-lg hover:bg-indigo-500 transition"
+                >
+                  Start Watching!
+                </button>
+              </SignInButton>
+            </SignedOut>
+            
           </div>
         </div>
 
@@ -123,8 +134,7 @@ export default function Home() {
               updateCurrentVideoId={updateCurrentVideoId} // Pass the callback
               supabase={supabase}
             />
-            {/* Render CommentBar only if showComments matches the videoID */}
-            
+
           </div>
         ))}
       </main>

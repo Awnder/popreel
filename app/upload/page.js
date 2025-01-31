@@ -1,31 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
-import { useSession } from "@clerk/nextjs";
+import { useState } from "react";
 import { BiSolidCloudUpload } from "react-icons/bi";
 import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
 
 export default function Upload() {
-	const { session: clerkSession } = useSession(); // The `useSession()` hook will be used to get the Clerk `session` object
-
-	const [file, setFile] = React.useState(null);
-	const [fileName, setFileName] = React.useState("");
-	const [fileUrl, setFileUrl] = React.useState("");
+	const [file, setFile] = useState(null);
+	const [fileName, setFileName] = useState("");
+	const [fileUrl, setFileUrl] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 	const [successMessage, setSuccessMessage] = useState("");
 
 	const onVideoChange = (event) => {
 		const files = event.target.files;
 
-		// 30mb file size limit
-		if (files[0].size > 30000000) {
-			setErrorMessage(
-				"File size too large. Please upload a file less than 30MB.",
-			);
-			return;
-		}
+		// 25mb file size limit - groq whisper is 25mb max and supabase upsert is 30mb max
+    if (files[0].size > 25000000) {
+      setErrorMessage(
+        "File size too large. Please upload a file less than 25MB.",
+      );
+      return;
+    }
 
 		if (files && files.length > 0) {
 			setFile(files[0]);
@@ -39,78 +36,7 @@ export default function Upload() {
 		setFileName("");
 		setFileUrl("");
 	};
-
-	// const uploadVideo = async () => {
-	//   const supabaseClient = createClerkSupabaseClient(clerkSession);
-
-	//   try {
-	//     setIsLoading(true); // Start loading state
-	//     setErrorMessage(""); // Reset previous errors
-	//     setSuccessMessage(""); // Reset previous success messages
-
-	//     let fileurl = `${Date.now()}-${fileName}`;
-	//     console.log("fileurl", fileurl);
-
-	//     // Upload the video file to Supabase storage
-	//     const { error: upsertError } = await supabaseClient.storage
-	//       .from("videos-bucket")
-	//       .upload(fileurl, file);
-
-	//     if (upsertError) {
-	//       setErrorMessage(`Upload failed: ${upsertError.message}`);
-	//       console.error("Upload failed:", upsertError.message);
-	//       setIsLoading(false);
-	//       clearVideo(); // Clear the video state after successful upload
-	//       return;
-	//     }
-	//     console.log("video uploaded to blob storage");
-
-	//     // Get the public URL of the uploaded video
-	//     const {
-	//       data: { publicUrl },
-	//     } = supabaseClient.storage.from("videos-bucket").getPublicUrl(fileurl);
-
-	//     console.log("publicUrl", publicUrl);
-
-	//     // Insert video metadata into Supabase database
-	//     const { error: insertError } = await supabaseClient
-	//       .from("videos")
-	//       .insert([
-	//         {
-	//           first_name: clerkSession?.user?.firstName,
-	//           last_name: clerkSession?.user?.lastName,
-	//           video_url: publicUrl,
-	//           likes: 0,
-	//           comments: 0,
-	//           embeddings: null,
-	//         },
-	//       ]);
-
-	//     if (insertError) {
-	//       setErrorMessage(`Insert failed: ${insertError.message}`);
-	//       console.error("Insert failed:", insertError.message);
-	//       setIsLoading(false);
-	//       clearVideo(); // Clear the video state after successful upload
-	//       return;
-	//     }
-	//     console.log("video uploaded to db");
-	//     setSuccessMessage("Video uploaded successfully!");
-	//     clearVideo(); // Clear the video state after successful upload
-	//   } catch (error) {
-	//     if (error instanceof Error) {
-	//       // If the error is an instance of the Error object, log it with a specific message
-	//       setErrorMessage(`Unexpected error occurred: ${error.message}`);
-	//       console.error("Unexpected error:", error.message);
-	//     } else {
-	//       // If it's not an instance of Error, log a more general error message
-	//       setErrorMessage("An unexpected error occurred.");
-	//       console.error("Unexpected error:", error);
-	//     }
-	//   } finally {
-	//     setIsLoading(false); // Stop loading state regardless of success or failure
-	//   }
-	// };
-
+	
 	const uploadVideo = async () => {
     const formData = new FormData();
 		const fileUrl = `${Date.now()}-${fileName}`;
@@ -120,7 +46,6 @@ export default function Upload() {
     setIsLoading(true);
     setSuccessMessage("");
     setErrorMessage("");
-
     // try to upsert the video to the supabase bucket
 		try {
 			const response = await fetch("/api/bucketupsert", {
@@ -135,10 +60,12 @@ export default function Upload() {
       console.log(await response.json());
 
 		} catch (error) {
-			setErrorMessage("Error during upload:", error);
-			console.error("Error during upload:", error);
-      return;
+      setIsLoading(false);
+      setErrorMessage("Error during upload:", error);
+      clearVideo();
+      return
 		};
+
     
     // try to upsert video metadata to the supabase video table 
     try {
@@ -154,9 +81,8 @@ export default function Upload() {
       console.log(await response.json());
 
     } catch (error) {
+      setIsLoading(false);
       setErrorMessage("Error during table upsert:", error);
-      console.error("Error during table upsert:", error);
-      return;
     } finally {
       setIsLoading(false);
       setSuccessMessage("Video uploaded successfully!");
@@ -231,7 +157,7 @@ export default function Upload() {
 							accept=".mp4"
 						/>
 					</label>
-					{errorMessage && (
+          {errorMessage && (
 						<p className="text-red-500 text-sm font-semibold">{errorMessage}</p>
 					)}
 					{successMessage && (
@@ -244,3 +170,76 @@ export default function Upload() {
 		</div>
 	);
 }
+
+
+  // JUST IN CASE!
+  // const uploadVideo = async () => {
+	//   const supabaseClient = createClerkSupabaseClient(clerkSession);
+
+	//   try {
+	//     setIsLoading(true); // Start loading state
+	//     setErrorMessage(""); // Reset previous errors
+	//     setSuccessMessage(""); // Reset previous success messages
+
+	//     let fileurl = `${Date.now()}-${fileName}`;
+	//     console.log("fileurl", fileurl);
+
+	//     // Upload the video file to Supabase storage
+	//     const { error: upsertError } = await supabaseClient.storage
+	//       .from("videos-bucket")
+	//       .upload(fileurl, file);
+
+	//     if (upsertError) {
+	//       setErrorMessage(`Upload failed: ${upsertError.message}`);
+	//       console.error("Upload failed:", upsertError.message);
+	//       setIsLoading(false);
+	//       clearVideo(); // Clear the video state after successful upload
+	//       return;
+	//     }
+	//     console.log("video uploaded to blob storage");
+
+	//     // Get the public URL of the uploaded video
+	//     const {
+	//       data: { publicUrl },
+	//     } = supabaseClient.storage.from("videos-bucket").getPublicUrl(fileurl);
+
+	//     console.log("publicUrl", publicUrl);
+
+	//     // Insert video metadata into Supabase database
+	//     const { error: insertError } = await supabaseClient
+	//       .from("videos")
+	//       .insert([
+	//         {
+	//           first_name: clerkSession?.user?.firstName,
+	//           last_name: clerkSession?.user?.lastName,
+	//           video_url: publicUrl,
+	//           likes: 0,
+	//           comments: 0,
+	//           embeddings: null,
+	//         },
+	//       ]);
+
+	//     if (insertError) {
+	//       setErrorMessage(`Insert failed: ${insertError.message}`);
+	//       console.error("Insert failed:", insertError.message);
+	//       setIsLoading(false);
+	//       clearVideo(); // Clear the video state after successful upload
+	//       return;
+	//     }
+	//     console.log("video uploaded to db");
+	//     setSuccessMessage("Video uploaded successfully!");
+	//     clearVideo(); // Clear the video state after successful upload
+	//   } catch (error) {
+	//     if (error instanceof Error) {
+	//       // If the error is an instance of the Error object, log it with a specific message
+	//       setErrorMessage(`Unexpected error occurred: ${error.message}`);
+	//       console.error("Unexpected error:", error.message);
+	//     } else {
+	//       // If it's not an instance of Error, log a more general error message
+	//       setErrorMessage("An unexpected error occurred.");
+	//       console.error("Unexpected error:", error);
+	//     }
+	//   } finally {
+	//     setIsLoading(false); // Stop loading state regardless of success or failure
+	//   }
+	// };

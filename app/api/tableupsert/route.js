@@ -19,7 +19,7 @@ export async function POST(req) {
 	const supabase = await createClerkSupabaseClientSsr();
   const { fileUrl } = await req.body;
 
-  const { data: { publicUrl } } = supabase
+  const { data: { publicUrl } } = await supabase
     .storage.from("videos-bucket").getPublicUrl(fileUrl);
 
 	const { error: upsertError } = await supabase
@@ -32,8 +32,7 @@ export async function POST(req) {
       dislikes: 0,
       comments: 0,
       embeddings: null,
-    },
-  )
+    });
 
 	if (upsertError) {
 		return NextResponse.json(

@@ -16,7 +16,7 @@ export async function POST(req) {
 		);
 	}
 
-	const supabase = await createClerkSupabaseClientSsr();
+  const supabase = await createClerkSupabaseClientSsr();
   const formData = await req.formData();
   const file = formData.get("file");
   const fileurl = formData.get("fileurl");

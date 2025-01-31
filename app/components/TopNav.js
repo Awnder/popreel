@@ -6,7 +6,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import PurpleButton from "./PurpleButton";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ModalInterest from "./ModalInterest";
 
 export default function TopNav() {
   const pathName = usePathname();
@@ -46,7 +45,6 @@ export default function TopNav() {
               height={35}
               className="rounded-full"
             />
-            <ModalInterest />
           </SignedOut>
         </div>
       </div>
