@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import BaseModal from "./BaseModal";
+import BaseModal from "./ModalBase";
 import InterestButton from "./InterestButton";
 
 const interests = [
@@ -22,7 +22,7 @@ const interests = [
 	"Nature",
 ];
 
-export default function InterestModal() {
+export default function ModalInterest() {
 	const [showModal, setShowModal] = useState(false);
 	const [selectedInterests, setSelectedInterests] = useState([]);
 	const maxInterests = 5;

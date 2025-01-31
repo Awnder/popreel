@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AiOutlineClose } from "react-icons/ai";
 
-export default function BaseModal({ onClose, title, children }) {
+export default function ModalBase({ onClose, title, children }) {
   const [domReady, setDomReady] = useState(false);
 
   const handleCloseClick = (event) => {
