@@ -16,7 +16,7 @@ export const completeOnboarding = async (interests: Array<String>) => {
 		const res = await client.users.updateUser(userId, {
 			publicMetadata: {
 				onboardingComplete: true,
-        interests: interests,
+				interests: interests,
 			},
 		});
 

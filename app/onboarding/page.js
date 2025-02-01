@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { completeOnboarding } from "./_actions";
 import InterestButton from "../components/InterestButton";
+import { createClerkSupabaseClient } from "../../utils/supabase/client";
+import { useSession } from "@clerk/nextjs";
 
 const interests = [
 	"Sports",
@@ -25,24 +27,39 @@ const interests = [
 ];
 
 export default function Onboarding() {
+	const { session: clerkSession } = useSession();
+	const [supabase, setSupabase] = useState(null);
 	const [selectedInterests, setSelectedInterests] = useState([]);
+	const [maxInterestsReached, setMaxInterestsReached] = useState(false);
 	const maxInterests = 5;
 	const [error, setError] = useState("");
 
 	const { user } = useUser();
 	const router = useRouter();
 
+	useEffect(() => {
+		if (!clerkSession) return;
+		setSupabase(createClerkSupabaseClient(clerkSession));
+	}, [clerkSession]);
+
 	const onInterestChange = (interest) => {
 		if (selectedInterests.includes(interest)) {
 			setSelectedInterests(selectedInterests.filter((i) => i !== interest));
 		} else {
-			setSelectedInterests([...selectedInterests, interest]);
+			if (selectedInterests.length == maxInterests) {
+				setMaxInterestsReached(true);
+				// exit function if max interests reached
+				return;
+			} else {
+				setSelectedInterests([...selectedInterests, interest]);
+			}
 		}
+		setMaxInterestsReached(false);
 	};
 
-  // calls two functions:
-  // 1) _actions.ts to set user interests in clerk metadata
-  // 2) api/userupsert/route.ts to set user interests in supabase
+	// calls two functions:
+	// 1) _actions.ts to set user interests in clerk metadata
+	// 2) api/userupsert/route.ts to set user interests in supabase
 	const handleSubmit = async () => {
 		if (selectedInterests.length > maxInterests) {
 			return;
@@ -80,34 +97,59 @@ export default function Onboarding() {
 		}
 	};
 
+	useEffect(() => {
+		if (!user || !supabase) {
+			return;
+		}
+		//fetch selectedInterests from users table, interests column from supabase
+		const fetchInterests = async () => {
+			const { data: userInterests, error } = await supabase
+				.from("users")
+				.select("interests")
+				.eq("id", user.id);
+
+			if (error) {
+				console.error(error);
+				return;
+			}
+			if (userInterests && userInterests.length > 0) {
+				setSelectedInterests(userInterests[0].interests);
+			}
+		};
+		fetchInterests();
+	}, [user, supabase]);
+
 	return (
-		<div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
-			<span className="text-2xl text-center mb-3">
-				What Do You Want To See?
+		<div className="flex flex-col items-center h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
+			<span className="text-2xl text-center mb-3 font-semibold text-purple-800 mt-16">
+				What are your Interests?
 			</span>
-			<span className="text-md text-center mb-3">
-				Select up to five interests
+			<span className="text-sm text-center mb-3 text-indigo-100">
+				Select up to {maxInterests} interests
 			</span>
-			<div className="flex flex-col justify-between h-[500px] w-[400px] border-2 p-4 rounded-lg">
+
+			<div className="flex flex-col justify-between w-11/12 sm:w-3/4 md:w-1/2 lg:w-1/4 border-2 p-4 rounded-lg shadow-xl bg-black border-purple-950">
 				<div className="flex flex-wrap gap-4 mt-3">
 					{interests.map((interest) => (
 						<div key={interest} onClick={() => onInterestChange(interest)}>
-							<InterestButton> {interest} </InterestButton>
+							<InterestButton selected={selectedInterests.includes(interest)}>
+								{interest}
+							</InterestButton>
 						</div>
 					))}
 				</div>
-				{selectedInterests.length > maxInterests ? (
+				{maxInterestsReached && (
 					<span className="text-purple-300 italic mt-2">
 						You can only select {maxInterests} interests!
 					</span>
-				) : (
-					<></>
 				)}
-				<div className=" text-center bg-black border-2 rounded-md p-4 mt-4 hover:bg-purple-800">
-					<button onClick={handleSubmit}>
-						<span className="text-white">Submit</span>
-					</button>
-				</div>
+				<button
+					className="text-center text-white font-semibold bg-black border-2 rounded-xl p-4 mt-4 hover:bg-gradient-to-br hover:from-purple-700 hover:to-purple-950 hover:scale-105 hover:shadow-lg ease-in-out transition-all duration-300"
+					onClick={handleSubmit}
+				>
+					Submit
+				</button>
+
 				{error ? <span className="text-red-500 mt-2">{error}</span> : <></>}
 			</div>
 		</div>
