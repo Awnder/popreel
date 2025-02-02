@@ -22,10 +22,11 @@ export async function POST(req) {
 	const supabase = await createClerkSupabaseClientSsr();
 	const body = await req.json();
 
-	// generating embeddings for the user's interests
+  const interests = body.interests.join(" ");
+  
 	let embeddings = [];
 	try {
-		embeddings = await generateEmbeddings(body.interests);
+		embeddings = await generateEmbeddings(interests);
 	} catch (error) {
 		return NextResponse.json(
 			{
