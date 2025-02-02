@@ -4,7 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { GoogleAIFileManager, FileState } from "@google/generative-ai/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { OpenAI } from "openai";
+import { generateEmbeddings } from "../../../utils/embeddings";
+import { prompt } from "../../../utils/prompts";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -60,16 +61,26 @@ export async function POST(req) {
 			{
 				fileData: {
 					mimeType: uploadResponse.file.mimeType,
-          // Be careful with passing the fileUri. It becomes a part of the summary and can be exposed to the user.
 					fileUri: uploadResponse.file.uri,
 				},
 			},
 			{
-				text: "Summarize the main points of this video in two to five sentences.",
+				text: prompt,
 			},
 		]);
 
-		const embeddings = await generateEmbeddings(result.response.text());
+		let embeddings = [];
+		try {
+			embeddings = await generateEmbeddings(result.response.text());
+		} catch (error) {
+			console.error("Error during embedding generation:", error);
+			return NextResponse.json(
+				{
+					message: `Error during embedding generation: ${error.message}`,
+				},
+				{ status: 500 },
+			);
+		}
 
 		// Step 4: Clean up
 		fs.rmSync(tempDir, { recursive: true, force: true });
@@ -95,21 +106,3 @@ export async function POST(req) {
 		);
 	}
 }
-
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-});
-
-const generateEmbeddings = async (text) => {
-	try {
-		const embeddings = await openai.embeddings.create({
-			model: "text-embedding-3-small",
-			input: text,
-		});
-
-		return embeddings.data[0].embedding;
-	} catch (error) {
-		console.error("Error during embedding generation:", error);
-		throw error;
-	}
-};
