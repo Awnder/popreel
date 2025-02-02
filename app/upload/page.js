@@ -4,8 +4,12 @@ import { useState } from "react";
 import { BiSolidCloudUpload } from "react-icons/bi";
 import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
+import { createClerkSupabaseClient } from "../../utils/supabase/client";
+import { useSession } from "@clerk/nextjs";
 
 export default function Upload() {
+  const { session } = useSession();
+
 	const [file, setFile] = useState(null);
 	const [fileName, setFileName] = useState("");
 	const [fileUrl, setFileUrl] = useState("");
@@ -41,6 +45,7 @@ export default function Upload() {
     const formData = new FormData();
 		const fileUrl = `${Date.now()}-${fileName}`;
 		formData.append("file", file);
+    formData.append("filename", fileName);
 		formData.append("fileurl", fileUrl);
 
     setIsLoading(true);
@@ -83,11 +88,71 @@ export default function Upload() {
     } catch (error) {
       setIsLoading(false);
       setErrorMessage("Error during table upsert:", error);
-    } finally {
-      setIsLoading(false);
-      setSuccessMessage("Video uploaded successfully!");
       clearVideo();
     }
+
+    setIsLoading(false);
+
+    const supabase = createClerkSupabaseClient(session);
+    const { data: { publicUrl } } = await supabase
+    .storage.from("videos-bucket").getPublicUrl(fileUrl);
+
+    console.log(publicUrl);
+    formData.append("publicurl", publicUrl);
+    
+    try {
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsLoading(false);
+        clearVideo();
+        setSuccessMessage(data.summary);
+      }
+
+    } catch (error) {
+      setErrorMessage("Error during transcription:", error);
+      console.error("Error during transcription:", error.message || error);
+    }
+
+    
+    // setSuccessMessage(`Video uploaded successfully! ${publicUrl}`);
+      // } finally {
+    //   setIsLoading(false);
+    //   setSuccessMessage("Video uploaded successfully!");
+    //   clearVideo();
+    // }
+    
+    // try {
+    //   // const response = await fetch("/api/transcribe", {
+    //   //   method: "POST",
+    //   //   body: fileUrl,
+    //   // });
+
+    //   // console.log(response)
+    //   async function analyze_video_with_audio() {
+    //     const { session } = useSession();
+    //     const supabase = createClerkSupabaseClient(session);
+    //     console.log("supabase");
+    //     const { data: { publicUrl } } = await supabase
+    //     .storage.from("videos-bucket").getPublicUrl(fileUrl);
+    //     console.log(publicUrl);
+      
+    //   }
+
+    //   setIsLoading(false);
+    //   setSuccessMessage('finally', publicUrl);
+    //   clearVideo();
+    // } catch (error) {
+    //   setIsLoading(false);
+    //   setErrorMessage("Error during transcription:", publicUrl);
+    //   console.error("Error during transcription:", error.message || error);
+    //   clearVideo();
+    // }
+    
 	};
 
 

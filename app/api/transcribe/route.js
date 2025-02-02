@@ -1,7 +1,12 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+'use server'
+
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { createClerkSupabaseClientSsr } from "../../../utils/supabase/server";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
+import { GoogleAIFileManager, FileState } from "@google/generative-ai/server"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
 
 export async function POST(req) {
 	const authData = await auth().catch(() => null);
@@ -16,42 +21,69 @@ export async function POST(req) {
 		);
 	}
 
-  const user = await currentUser();
-	const supabase = await createClerkSupabaseClientSsr();
-  const { fileUrl } = await req.body;
+  const formData = await req.formData();
+  const videoUrl = formData.get("publicurl");
 
-  // uploading video to file api 
-  const fileManager = new GoogleAIFileManager(process.env.API_KEY);
-  const uploadResponse = await fileManager.uploadFile("GreatRedSpot.mp4", {
-    mimeType: "video/mp4",
-    displayName: "Jupiter's Great Red Spot",
-  });
+  try {
+    // Step 1: Download video to temporary directory
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'video-'))
+    const tempFilePath = path.join(tempDir, 'temp_video.mp4')
 
-	const { error: upsertError } = await supabase
-    .from("videos")
-    .insert({
-      first_name: user?.firstName,
-      last_name: user?.lastName,
-      video_url: publicUrl,
-      likes: 0,
-      dislikes: 0,
-      comments: 0,
-      embeddings: null,
-    });
+    const response = await fetch(videoUrl);
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(tempFilePath, buffer);
 
-	if (upsertError) {
-		return NextResponse.json(
-			{
-				message: upsertError,
-			},
-			{ status: 500 },
-		);
-	}
 
-	return NextResponse.json(
-		{
-			message: "Upload succeeded",
-		},
-		{ status: 200 },
-	);
+    // Step 2: Upload video to Google AI FileManager
+    const fileManager = new GoogleAIFileManager(process.env.GOOGLE_API_KEY)
+    const uploadResponse = await fileManager.uploadFile(tempFilePath, {
+      mimeType: 'video/mp4',
+      displayName: 'Temporary Video for Processing',
+    })
+
+    // Step 3: Process video with Gemini
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+    // wait for ACTIVE file
+    let file = await fileManager.getFile(uploadResponse.file.name);
+    while (file.state === FileState.PROCESSING) {
+      process.stdout.write(".")
+      // Sleep for 10 seconds
+      await new Promise((resolve) => setTimeout(resolve, 10_000));
+      // Fetch the file from the API again
+      file = await fileManager.getFile(uploadResponse.file.name)
+    }
+
+    const result = await model.generateContent([
+      {
+        fileData: {
+          mimeType: uploadResponse.file.mimeType,
+          fileUri: uploadResponse.file.uri,
+        },
+      },
+      { text: 'Summarize the main points of this video in two to five sentences.' },
+    ])
+
+    // Step 4: Clean up
+    fs.rmSync(tempDir, { recursive: true, force: true })
+    await fileManager.deleteFile(uploadResponse.file.name)
+
+    return NextResponse.json(
+      {
+        message: "Transcription succeeded",
+        summary: result.response.text(),
+      },
+      { status: 200 },
+    )
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json(
+      {
+        message: error.message,
+      },
+      { status: 500 },
+    )
+  }
 }
