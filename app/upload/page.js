@@ -6,27 +6,29 @@ import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
 import { createClerkSupabaseClient } from "../../utils/supabase/client";
 import { useSession } from "@clerk/nextjs";
+import { set } from "date-fns";
 
 export default function Upload() {
-  const { session } = useSession();
+	const { session } = useSession();
 
 	const [file, setFile] = useState(null);
 	const [fileName, setFileName] = useState("");
 	const [fileUrl, setFileUrl] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
 	const [successMessage, setSuccessMessage] = useState("");
+	const [status, setStatus] = useState("Uploading");
 
 	const onVideoChange = (event) => {
 		const files = event.target.files;
 
 		// 25mb file size limit - groq whisper is 25mb max and supabase upsert is 30mb max
-    if (files[0].size > 25000000) {
-      setErrorMessage(
-        "File size too large. Please upload a file less than 25MB.",
-      );
-      return;
-    }
+		if (files[0].size > 25000000) {
+			setErrorMessage(
+				"File size too large. Please upload a file less than 25MB.",
+			);
+			return;
+		}
 
 		if (files && files.length > 0) {
 			setFile(files[0]);
@@ -40,121 +42,117 @@ export default function Upload() {
 		setFileName("");
 		setFileUrl("");
 	};
-	
+
 	const uploadVideo = async () => {
-    const formData = new FormData();
+		setIsLoading(true);
+		setSuccessMessage("");
+		setErrorMessage("");
+
+		const formData = new FormData();
 		const fileUrl = `${Date.now()}-${fileName}`;
 		formData.append("file", file);
-    formData.append("filename", fileName);
+		formData.append("filename", fileName);
 		formData.append("fileurl", fileUrl);
+		setStatus("Uploading Video");
 
-    setIsLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
-    // try to upsert the video to the supabase bucket
 		try {
-			const response = await fetch("/api/bucketupsert", {
+			// 1. Upload the video to the supabase bucket
+			const bucketResponse = await fetch("/api/bucketupsert", {
 				method: "POST",
 				body: formData,
 			});
 
-			if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
+			if (!bucketResponse.ok) {
+				setIsLoading(false);
+				setErrorMessage(`Error: ${error.message}`);
+				clearVideo();
+				console.error(error.message || error);
 			}
 
-      console.log(await response.json());
+			// 2. Get the public URL from Supabase storage
+			const supabase = createClerkSupabaseClient(session);
+			const {
+				data: { publicUrl },
+			} = supabase.storage.from("videos-bucket").getPublicUrl(fileUrl);
 
+			formData.append("publicUrl", publicUrl);
+
+			// 3. Transcribe video
+			setStatus("Transcribing Video");
+			const transcribeResponse = await fetch("/api/transcribe", {
+				method: "POST",
+				body: formData,
+			});
+
+			let embeddings = [];
+			if (transcribeResponse.ok) {
+				const data = await transcribeResponse.json();
+				embeddings = data.embeddings;
+				console.log("summary:", data.summary);
+			} else {
+				throw new Error("Transcription failed!");
+			}
+
+			// Upsert video metadata to the supabase video table
+			const tableResponse = await fetch("/api/tableupsert", {
+				method: "POST",
+				body: JSON.stringify({
+					fileUrl,
+					embeddings,
+					publicUrl,
+				}),
+			});
+
+			if (!tableResponse.ok) {
+				setIsLoading(false);
+				setErrorMessage(`Error: ${error.message}`);
+				clearVideo();
+				console.error(error.message || error);
+			}
 		} catch (error) {
-      setIsLoading(false);
-      setErrorMessage("Error during upload:", error);
-      clearVideo();
-      return
-		};
+			setIsLoading(false);
+			setErrorMessage(`Error: ${error.message}`);
+			clearVideo();
+			console.error(error.message || error);
+		}
 
-    
-    // try to upsert video metadata to the supabase video table 
-    try {
-      const response = await fetch("/api/tableupsert", {
-        method: "POST",
-        body: fileUrl,
-      });
+		setIsLoading(false);
+		clearVideo();
+		setSuccessMessage("Video uploaded successfully!");
+		// setSuccessMessage(`Video uploaded successfully! ${publicUrl}`);
+		// } finally {
+		//   setIsLoading(false);
+		//   setSuccessMessage("Video uploaded successfully!");
+		//   clearVideo();
+		// }
 
-      if (!response.ok) {
-				throw new Error(`HTTP error! Status: ${response.status}`);
-			}
+		// try {
+		//   // const response = await fetch("/api/transcribe", {
+		//   //   method: "POST",
+		//   //   body: fileUrl,
+		//   // });
 
-      console.log(await response.json());
+		//   // console.log(response)
+		//   async function analyze_video_with_audio() {
+		//     const { session } = useSession();
+		//     const supabase = createClerkSupabaseClient(session);
+		//     console.log("supabase");
+		//     const { data: { publicUrl } } = await supabase
+		//     .storage.from("videos-bucket").getPublicUrl(fileUrl);
+		//     console.log(publicUrl);
 
-    } catch (error) {
-      setIsLoading(false);
-      setErrorMessage("Error during table upsert:", error);
-      clearVideo();
-    }
+		//   }
 
-    setIsLoading(false);
-
-    const supabase = createClerkSupabaseClient(session);
-    const { data: { publicUrl } } = await supabase
-    .storage.from("videos-bucket").getPublicUrl(fileUrl);
-
-    console.log(publicUrl);
-    formData.append("publicurl", publicUrl);
-    
-    try {
-      const response = await fetch("/api/transcribe", {
-        method: "POST",
-        body: formData
-      })
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsLoading(false);
-        clearVideo();
-        setSuccessMessage(data.summary);
-      }
-
-    } catch (error) {
-      setErrorMessage("Error during transcription:", error);
-      console.error("Error during transcription:", error.message || error);
-    }
-
-    
-    // setSuccessMessage(`Video uploaded successfully! ${publicUrl}`);
-      // } finally {
-    //   setIsLoading(false);
-    //   setSuccessMessage("Video uploaded successfully!");
-    //   clearVideo();
-    // }
-    
-    // try {
-    //   // const response = await fetch("/api/transcribe", {
-    //   //   method: "POST",
-    //   //   body: fileUrl,
-    //   // });
-
-    //   // console.log(response)
-    //   async function analyze_video_with_audio() {
-    //     const { session } = useSession();
-    //     const supabase = createClerkSupabaseClient(session);
-    //     console.log("supabase");
-    //     const { data: { publicUrl } } = await supabase
-    //     .storage.from("videos-bucket").getPublicUrl(fileUrl);
-    //     console.log(publicUrl);
-      
-    //   }
-
-    //   setIsLoading(false);
-    //   setSuccessMessage('finally', publicUrl);
-    //   clearVideo();
-    // } catch (error) {
-    //   setIsLoading(false);
-    //   setErrorMessage("Error during transcription:", publicUrl);
-    //   console.error("Error during transcription:", error.message || error);
-    //   clearVideo();
-    // }
-    
+		//   setIsLoading(false);
+		//   setSuccessMessage('finally', publicUrl);
+		//   clearVideo();
+		// } catch (error) {
+		//   setIsLoading(false);
+		//   setErrorMessage("Error during transcription:", publicUrl);
+		//   console.error("Error during transcription:", error.message || error);
+		//   clearVideo();
+		// }
 	};
-
 
 	return (
 		<div className="w-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-950 via-black to-indigo-950 overflow-hidden">
@@ -176,7 +174,7 @@ export default function Upload() {
 						{isLoading ? (
 							<div className="flex items-center justify-center space-x-2">
 								<div className="w-6 h-6 border-4 border-t-4 border-purple-600 border-solid rounded-full spinner"></div>
-								<span className="text-white">Uploading...</span>
+								<span className="text-white">{status}...</span>
 							</div>
 						) : (
 							<>
@@ -222,7 +220,7 @@ export default function Upload() {
 							accept=".mp4"
 						/>
 					</label>
-          {errorMessage && (
+					{errorMessage && (
 						<p className="text-red-500 text-sm font-semibold">{errorMessage}</p>
 					)}
 					{successMessage && (
@@ -236,75 +234,74 @@ export default function Upload() {
 	);
 }
 
+// JUST IN CASE!
+// const uploadVideo = async () => {
+//   const supabaseClient = createClerkSupabaseClient(clerkSession);
 
-  // JUST IN CASE!
-  // const uploadVideo = async () => {
-	//   const supabaseClient = createClerkSupabaseClient(clerkSession);
+//   try {
+//     setIsLoading(true); // Start loading state
+//     setErrorMessage(""); // Reset previous errors
+//     setSuccessMessage(""); // Reset previous success messages
 
-	//   try {
-	//     setIsLoading(true); // Start loading state
-	//     setErrorMessage(""); // Reset previous errors
-	//     setSuccessMessage(""); // Reset previous success messages
+//     let fileurl = `${Date.now()}-${fileName}`;
+//     console.log("fileurl", fileurl);
 
-	//     let fileurl = `${Date.now()}-${fileName}`;
-	//     console.log("fileurl", fileurl);
+//     // Upload the video file to Supabase storage
+//     const { error: upsertError } = await supabaseClient.storage
+//       .from("videos-bucket")
+//       .upload(fileurl, file);
 
-	//     // Upload the video file to Supabase storage
-	//     const { error: upsertError } = await supabaseClient.storage
-	//       .from("videos-bucket")
-	//       .upload(fileurl, file);
+//     if (upsertError) {
+//       setErrorMessage(`Upload failed: ${upsertError.message}`);
+//       console.error("Upload failed:", upsertError.message);
+//       setIsLoading(false);
+//       clearVideo(); // Clear the video state after successful upload
+//       return;
+//     }
+//     console.log("video uploaded to blob storage");
 
-	//     if (upsertError) {
-	//       setErrorMessage(`Upload failed: ${upsertError.message}`);
-	//       console.error("Upload failed:", upsertError.message);
-	//       setIsLoading(false);
-	//       clearVideo(); // Clear the video state after successful upload
-	//       return;
-	//     }
-	//     console.log("video uploaded to blob storage");
+//     // Get the public URL of the uploaded video
+//     const {
+//       data: { publicUrl },
+//     } = supabaseClient.storage.from("videos-bucket").getPublicUrl(fileurl);
 
-	//     // Get the public URL of the uploaded video
-	//     const {
-	//       data: { publicUrl },
-	//     } = supabaseClient.storage.from("videos-bucket").getPublicUrl(fileurl);
+//     console.log("publicUrl", publicUrl);
 
-	//     console.log("publicUrl", publicUrl);
+//     // Insert video metadata into Supabase database
+//     const { error: insertError } = await supabaseClient
+//       .from("videos")
+//       .insert([
+//         {
+//           first_name: clerkSession?.user?.firstName,
+//           last_name: clerkSession?.user?.lastName,
+//           video_url: publicUrl,
+//           likes: 0,
+//           comments: 0,
+//           embeddings: null,
+//         },
+//       ]);
 
-	//     // Insert video metadata into Supabase database
-	//     const { error: insertError } = await supabaseClient
-	//       .from("videos")
-	//       .insert([
-	//         {
-	//           first_name: clerkSession?.user?.firstName,
-	//           last_name: clerkSession?.user?.lastName,
-	//           video_url: publicUrl,
-	//           likes: 0,
-	//           comments: 0,
-	//           embeddings: null,
-	//         },
-	//       ]);
-
-	//     if (insertError) {
-	//       setErrorMessage(`Insert failed: ${insertError.message}`);
-	//       console.error("Insert failed:", insertError.message);
-	//       setIsLoading(false);
-	//       clearVideo(); // Clear the video state after successful upload
-	//       return;
-	//     }
-	//     console.log("video uploaded to db");
-	//     setSuccessMessage("Video uploaded successfully!");
-	//     clearVideo(); // Clear the video state after successful upload
-	//   } catch (error) {
-	//     if (error instanceof Error) {
-	//       // If the error is an instance of the Error object, log it with a specific message
-	//       setErrorMessage(`Unexpected error occurred: ${error.message}`);
-	//       console.error("Unexpected error:", error.message);
-	//     } else {
-	//       // If it's not an instance of Error, log a more general error message
-	//       setErrorMessage("An unexpected error occurred.");
-	//       console.error("Unexpected error:", error);
-	//     }
-	//   } finally {
-	//     setIsLoading(false); // Stop loading state regardless of success or failure
-	//   }
-	// };
+//     if (insertError) {
+//       setErrorMessage(`Insert failed: ${insertError.message}`);
+//       console.error("Insert failed:", insertError.message);
+//       setIsLoading(false);
+//       clearVideo(); // Clear the video state after successful upload
+//       return;
+//     }
+//     console.log("video uploaded to db");
+//     setSuccessMessage("Video uploaded successfully!");
+//     clearVideo(); // Clear the video state after successful upload
+//   } catch (error) {
+//     if (error instanceof Error) {
+//       // If the error is an instance of the Error object, log it with a specific message
+//       setErrorMessage(`Unexpected error occurred: ${error.message}`);
+//       console.error("Unexpected error:", error.message);
+//     } else {
+//       // If it's not an instance of Error, log a more general error message
+//       setErrorMessage("An unexpected error occurred.");
+//       console.error("Unexpected error:", error);
+//     }
+//   } finally {
+//     setIsLoading(false); // Stop loading state regardless of success or failure
+//   }
+// };

@@ -15,24 +15,19 @@ export async function POST(req) {
 		);
 	}
 
-  const user = await currentUser();
+	const user = await currentUser();
 	const supabase = await createClerkSupabaseClientSsr();
-  const { fileUrl } = await req.body;
+	const { fileUrl, embeddings, publicUrl } = await req.json();
 
-  const { data: { publicUrl } } = await supabase
-    .storage.from("videos-bucket").getPublicUrl(fileUrl);
-
-	const { error: upsertError } = await supabase
-    .from("videos")
-    .insert({
-      first_name: user?.firstName,
-      last_name: user?.lastName,
-      video_url: publicUrl,
-      likes: 0,
-      dislikes: 0,
-      comments: 0,
-      embeddings: null,
-    });
+	const { error: upsertError } = await supabase.from("videos").insert({
+		first_name: user?.firstName,
+		last_name: user?.lastName,
+		video_url: publicUrl,
+		likes: 0,
+		dislikes: 0,
+		comments: 0,
+		embeddings: embeddings,
+	});
 
 	if (upsertError) {
 		return NextResponse.json(
