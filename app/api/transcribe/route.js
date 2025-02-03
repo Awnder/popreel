@@ -43,10 +43,6 @@ export async function POST(req) {
 			displayName: "Temporary Video for Processing",
 		});
 
-		// Step 3: Process video with Gemini
-		const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
 		// wait for ACTIVE file
 		let file = await fileManager.getFile(uploadResponse.file.name);
 		while (file.state === FileState.PROCESSING) {
@@ -56,6 +52,10 @@ export async function POST(req) {
 			// Fetch the file from the API again
 			file = await fileManager.getFile(uploadResponse.file.name);
 		}
+
+    // Step 3: Process video with Gemini
+		const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+		const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 		const result = await model.generateContent([
 			{
