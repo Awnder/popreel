@@ -6,6 +6,7 @@ import {
 	ShareIcon,
 } from "@heroicons/react/24/outline";
 
+
 function createRipple(event) {
 	const button = event.currentTarget;
 	const circle = document.createElement("span");
@@ -156,18 +157,18 @@ export default function VideoPlayer({
 		});
 	};
 
-	return (
-		<div className="w-3/6 h-screen ml-40">
-			<div className="w-full h-full relative">
-				{/* Video Element */}
-				<video
-					ref={videoRef}
-					onClick={handleVideoClick}
-					src={src}
-					className="object-fill w-4/5 h-full"
-					autoPlay
-					loop
-				/>
+  return (
+    <div className="w-1/2 h-screen flex justify-center items-center ml-40">
+      <div className="relative w-full h-full max-w-screen-md">
+        {/* Video Element */}
+        <video
+          ref={videoRef}
+          onClick={handleVideoClick}
+          src={src}
+          className="object-fill w-4/5 h-full"
+          autoPlay
+          loop
+        />
 
 				{/* Button Container */}
 				<div className="absolute right-8 top-[calc(56%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
@@ -188,50 +189,50 @@ export default function VideoPlayer({
 						</div>
 					</button>
 
-					{/* Dislike Button */}
-					<button
-						className={`bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden ${
-							disliked ? "scale-110" : ""
-						}`}
-						onClick={(e) => {
-							e.preventDefault();
-							createRipple(e);
-							handleDislikeClick();
-						}}
-					>
-						<div className="flex items-center gap-3">
-							<HandThumbDownIcon className="w-6 h-6 text-white" />
-							<span className="text-white">{formatNumber(dislikes)}</span>
-						</div>
-					</button>
+          {/* Dislike Button */}
+          <button
+            className={`bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden ${
+              disliked ? "scale-110" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              createRipple(e);
+              handleDislikeClick();
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <HandThumbDownIcon className="w-6 h-6 text-white" />
+              <span className="text-white">{formatNumber(dislikes)}</span>
+            </div>
+          </button>
 
-					{/* Comment Button */}
-					<button
-						className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
-						onClick={handleCommentBarClick}
-					>
-						<ChatBubbleBottomCenterIcon className="w-6 h-6 text-white" />
-					</button>
+          {/* Comment Button */}
+          <button
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
+            onClick={handleCommentBarClick}
+          >
+            <ChatBubbleBottomCenterIcon className="w-6 h-6 text-white" />
+          </button>
 
-					{/* Share Button */}
-					<button
-						className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
-						onClick={(e) => {
-							e.preventDefault();
-							handleShareClick();
-						}}
-					>
-						<ShareIcon className="w-6 h-6 text-white" />
-					</button>
-				</div>
+          {/* Share Button */}
+          <button
+            className="bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 transition flex items-center justify-center"
+            onClick={(e) => {
+              e.preventDefault();
+              handleShareClick();
+            }}
+          >
+            <ShareIcon className="w-6 h-6 text-white" />
+          </button>
+        </div>
 
-				{/* Pop-up message when link is copied */}
-				{copied && (
-					<div className="absolute top-0 left-1/2 transform -translate-x-1/2 bg-indigo-950 text-white rounded-lg py-2 px-4 shadow-md">
-						Link copied to clipboard!
-					</div>
-				)}
-			</div>
-		</div>
-	);
+        {/* Pop-up message when link is copied */}
+        {copied && (
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 bg-indigo-950 text-white rounded-lg py-2 px-4 shadow-md">
+            Link copied to clipboard!
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
