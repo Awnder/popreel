@@ -87,7 +87,7 @@ export default function Home() {
 					className="w-full h-screen snap-center flex justify-center items-center bg-inherit"
 					htmlFor={`intro-section`}
 				>
-					<div className="flex flex-col justify-center items-center text-center">
+					<div className="flex flex-col justify-center items-center text-center ml-40 mb-32">
 						<h1 className="text-4xl font-bold text-white animate-fadeInUp">
 							<span className="block text-indigo-500 mb-8">
 								Welcome to PopReeeel!
