@@ -123,7 +123,7 @@ export default function Onboarding() {
 
 	return (
 		<div className="flex flex-col items-center h-screen bg-gradient-to-br from-purple-950 via-black to-indigo-950 text-white">
-			<span className="text-2xl text-center mb-3 font-semibold text-purple-800 mt-16">
+			<span className="text-2xl text-center mb-3 font-semibold text-purple-800 mt-24">
 				What are your Interests?
 			</span>
 			<span className="text-sm text-center mb-3 text-indigo-100">

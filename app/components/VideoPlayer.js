@@ -157,20 +157,20 @@ export default function VideoPlayer({
 	};
 
 	return (
-		<div className="w-2/5 h-screen ml-40">
+		<div className="w-3/6 h-screen ml-40">
 			<div className="w-full h-full relative">
 				{/* Video Element */}
 				<video
 					ref={videoRef}
 					onClick={handleVideoClick}
 					src={src}
-					className="object-fill w-full h-full"
+					className="object-fill w-4/5 h-full"
 					autoPlay
 					loop
 				/>
 
 				{/* Button Container */}
-				<div className="absolute right-8 top-[calc(46%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
+				<div className="absolute right-8 top-[calc(56%)] transform -translate-y-1/2 flex flex-col space-y-8 text-indigo-200">
 					{/* Like Button */}
 					<button
 						className={`bg-indigo-950 rounded-full p-3 hover:bg-indigo-900 active:scale-90 transition relative overflow-hidden ${

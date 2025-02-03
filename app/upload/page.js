@@ -157,7 +157,7 @@ export default function Upload() {
 	return (
 		<div className="w-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-950 via-black to-indigo-950 overflow-hidden ">
 			{fileUrl ? (
-				<div className="flex flex-col items-center justify-center max-h-screen w-[350px]">
+				<div className="flex flex-col items-center justify-center max-h-screen w-[350px] mt-24">
 					<h1 className="text-3xl font-semibold text-purple-600 mb-5">
 						Preview Your Video
 					</h1>
@@ -199,7 +199,7 @@ export default function Upload() {
 					</div>
 				</div>
 			) : (
-				<div className="flex flex-col items-center justify-center w-full ">
+				<div className="flex flex-col items-center justify-center w-full mt-24">
 					<h1 className="text-3xl font-semibold text-purple-600">
 						Upload a Video
 					</h1>
