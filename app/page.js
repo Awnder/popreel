@@ -117,7 +117,7 @@ export default function Home() {
 				{videos.map((video, index) => (
 					<div
 						key={index}
-						className="w-full h-screen snap-center flex justify-center items-center bg-inherit border-2 border-red-500"
+						className="w-full h-screen snap-center flex justify-center items-center bg-inherit"
 						htmlFor={`video-${video.id}`}
 						ref={index === 0 ? firstVideoRef : null} // Set reference for the first video
 					>
