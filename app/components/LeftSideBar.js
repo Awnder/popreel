@@ -11,7 +11,7 @@ import Link from "next/link";
 
 export default function LeftSideBar() {
 	return (
-		<div className="fixed left-0 h-full w-1/6 shadow-xl bg-gradient-to-br from-purple-950 via-black to-black z-20">
+		<div className="fixed left-0 h-full w-1/6 max-w-xs shadow-xl bg-gradient-to-br from-purple-950 via-black to-black z-20">
 			<div className="flex flex-col items-center h-full mt-24">
 				{/* Home Button */}
         <Tooltip text="Home">				
