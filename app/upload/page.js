@@ -6,7 +6,6 @@ import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
 import PurpleButton from "../components/PurpleButton";
 import { createClerkSupabaseClient } from "../../utils/supabase/client";
 import { useSession } from "@clerk/nextjs";
-import { set } from "date-fns";
 
 export default function Upload() {
 	const { session } = useSession();
@@ -90,7 +89,7 @@ export default function Upload() {
 				embeddings = data.embeddings;
 				console.log("summary:", data.summary);
 			} else {
-				throw new Error("Transcription failed!");
+				throw new Error(`Transcription failed! ${transcribeResponse.statusText}, ${transcribeResponse.status}`);
 			}
 
 			// Upsert video metadata to the supabase video table
