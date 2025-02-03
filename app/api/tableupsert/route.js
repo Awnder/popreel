@@ -17,7 +17,7 @@ export async function POST(req) {
 
 	const user = await currentUser();
 	const supabase = await createClerkSupabaseClientSsr();
-	const { fileUrl, embeddings, publicUrl } = await req.json();
+	const { fileUrl, summary, embeddings, publicUrl } = await req.json();
 
 	const { error: upsertError } = await supabase.from("videos").insert({
 		first_name: user?.firstName,
@@ -26,6 +26,7 @@ export async function POST(req) {
 		likes: 0,
 		dislikes: 0,
 		comments: 0,
+    summary: summary,
 		embeddings: embeddings,
 	});
 

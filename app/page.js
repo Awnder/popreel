@@ -52,6 +52,8 @@ export default function Home() {
 			const data = await response.json();
 			const ragVideos = data.videos;
 
+      console.log(ragVideos);
+
 			const videoData = ragVideos.map((video) => ({
 				src: video.video_url,
 				id: video.id,

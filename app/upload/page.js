@@ -121,9 +121,11 @@ export default function Upload() {
 				body: formData,
 			});
 
+      let summary = "";
 			let embeddings = [];
 			if (transcribeResponse.ok) {
 				const data = await transcribeResponse.json();
+        summary = data.summary;
 				embeddings = data.embeddings;
 				console.log("summary:", data.summary);
 			} else {
@@ -136,6 +138,7 @@ export default function Upload() {
 				body: JSON.stringify({
 					fileUrl,
 					embeddings,
+          summary,
 					publicUrl,
 				}),
 			});
