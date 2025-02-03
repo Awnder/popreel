@@ -155,7 +155,7 @@ export default function Upload() {
 	};
 
 	return (
-		<div className="w-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-950 via-black to-indigo-950 overflow-hidden">
+		<div className="w-full min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-950 via-black to-indigo-950 overflow-hidden ">
 			{fileUrl ? (
 				<div className="flex flex-col items-center justify-center max-h-screen w-[350px]">
 					<h1 className="text-3xl font-semibold text-purple-600 mb-5">

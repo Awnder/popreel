@@ -33,6 +33,7 @@ export default function Onboarding() {
 	const [maxInterestsReached, setMaxInterestsReached] = useState(false);
 	const maxInterests = 5;
 	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
 
 	const { user } = useUser();
 	const router = useRouter();
@@ -64,6 +65,7 @@ export default function Onboarding() {
 		if (selectedInterests.length > maxInterests) {
 			return;
 		}
+		setLoading(true);
 		const res = await completeOnboarding(selectedInterests);
 		if (res?.message) {
 			// Reloads the user's data from the Clerk API
@@ -88,11 +90,11 @@ export default function Onboarding() {
 				.catch((error) => {
 					setError("Error during upload:", error);
 				});
-
 			router.push("/"); // automatically redirects to the home page without waiting for supabase to resolve
 		}
 		if (res?.error) {
 			setError(res?.error);
+			setLoading(false);
 			return;
 		}
 	};
@@ -147,7 +149,7 @@ export default function Onboarding() {
 					className="text-center text-white font-semibold bg-black border-2 rounded-xl p-4 mt-4 hover:bg-gradient-to-br hover:from-purple-700 hover:to-purple-950 hover:scale-105 hover:shadow-lg ease-in-out transition-all duration-300"
 					onClick={handleSubmit}
 				>
-					Submit
+					{loading ? "Updating..." : "Submit"}
 				</button>
 
 				{error ? <span className="text-red-500 mt-2">{error}</span> : <></>}
