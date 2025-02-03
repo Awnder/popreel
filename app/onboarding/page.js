@@ -103,6 +103,9 @@ export default function Onboarding() {
 		if (!user || !supabase) {
 			return;
 		}
+		if (loading) {
+			return;
+		}
 		//fetch selectedInterests from users table, interests column from supabase
 		const fetchInterests = async () => {
 			const { data: userInterests, error } = await supabase
