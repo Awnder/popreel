@@ -11,6 +11,8 @@ export default function CommentBar({
 }) {
 	const [comments, setComments] = useState([]);
 	const [newComment, setNewComment] = useState("");
+	const { fullName } = clerkSession.user;
+	const initials = `${fullName[0]}${fullName[fullName.lastIndexOf(" ") + 1]}`;
 
 	const handleAddComment = async () => {
 		if (!newComment) return;
@@ -34,6 +36,9 @@ export default function CommentBar({
 					user_id: clerkSession.user.id,
 					video_id: videoID,
 					comment_text: newComment,
+					username: fullName,
+					initials: initials,
+					created_at: new Date().toISOString(),
 				},
 			]);
 		}
