@@ -19,21 +19,17 @@ export default function Upload() {
 	const [status, setStatus] = useState("Uploading");
 
 	const onVideoChange = (event) => {
-		const files = event.target.files;
+    const files = event.target.files;
 
-		// 25mb file size limit - groq whisper is 25mb max and supabase upsert is 30mb max
-		if (files[0].size > 25000000) {
-			setErrorMessage(
-				"File size too large. Please upload a file less than 25MB.",
-			);
-			return;
-		}
+    if (!files[0] || files.length === 0) {
+      setErrorMessage("Please select a video file to upload.");
+      setFile(null);
+      return;
+    }
 
-		if (files && files.length > 0) {
-			setFile(files[0]);
-			setFileName(files[0].name);
-			setFileUrl(URL.createObjectURL(files[0]));
-		}
+    setFile(files[0]);
+    setFileName(files[0].name);
+    setFileUrl(URL.createObjectURL(files[0]));
 	};
 
 	const clearVideo = () => {
@@ -42,10 +38,52 @@ export default function Upload() {
 		setFileUrl("");
 	};
 
+  const videoValidation = () => {
+    // checks if the video file is less than 25MB and less than 30 seconds
+    // creates a promise to wait for the video metadata to load
+    return new Promise((resolve, reject) => {
+      if (file.size > 25000000) {
+        setErrorMessage("File size too large. Please upload a file less than 25MB.");
+        console.log('Video size too large');
+        return resolve(false);
+      }
+  
+      const videoElement = document.createElement("video");
+      videoElement.src = URL.createObjectURL(file);
+  
+      videoElement.onloadedmetadata = () => {
+        const durationInSeconds = videoElement.duration;
+        const maxDuration = 30;
+  
+        if (durationInSeconds >= maxDuration) {
+          setErrorMessage("Video duration too long. Please upload a video less than 30 seconds.");
+          console.log("Video duration too long");
+          return resolve(false);
+        }
+        resolve(true);
+      };
+  
+      videoElement.onerror = () => {
+        setErrorMessage("Error loading video metadata.");
+        console.log("Error loading video metadata");
+        resolve(false);
+      };
+    });
+  };
+
 	const uploadVideo = async () => {
 		setIsLoading(true);
 		setSuccessMessage("");
 		setErrorMessage("");
+
+    const success = await videoValidation();
+
+    if (!success) {
+      clearVideo();
+      setIsLoading(false);
+      console.log("Video validation failed");
+      return;
+    }
 
 		const formData = new FormData();
 		const fileUrl = `${Date.now()}-${fileName}`;
@@ -103,54 +141,18 @@ export default function Upload() {
 			});
 
 			if (!tableResponse.ok) {
-				setIsLoading(false);
 				setErrorMessage(`Error: ${error.message}`);
-				clearVideo();
 				console.error(error.message || error);
-			}
+			} else {
+        setSuccessMessage("Video uploaded successfully!");
+      }
 		} catch (error) {
-			setIsLoading(false);
 			setErrorMessage(`Error: ${error.message}`);
-			clearVideo();
 			console.error(error.message || error);
-		}
-
-		setIsLoading(false);
-		clearVideo();
-		setSuccessMessage("Video uploaded successfully!");
-		// setSuccessMessage(`Video uploaded successfully! ${publicUrl}`);
-		// } finally {
-		//   setIsLoading(false);
-		//   setSuccessMessage("Video uploaded successfully!");
-		//   clearVideo();
-		// }
-
-		// try {
-		//   // const response = await fetch("/api/transcribe", {
-		//   //   method: "POST",
-		//   //   body: fileUrl,
-		//   // });
-
-		//   // console.log(response)
-		//   async function analyze_video_with_audio() {
-		//     const { session } = useSession();
-		//     const supabase = createClerkSupabaseClient(session);
-		//     console.log("supabase");
-		//     const { data: { publicUrl } } = await supabase
-		//     .storage.from("videos-bucket").getPublicUrl(fileUrl);
-		//     console.log(publicUrl);
-
-		//   }
-
-		//   setIsLoading(false);
-		//   setSuccessMessage('finally', publicUrl);
-		//   clearVideo();
-		// } catch (error) {
-		//   setIsLoading(false);
-		//   setErrorMessage("Error during transcription:", publicUrl);
-		//   console.error("Error during transcription:", error.message || error);
-		//   clearVideo();
-		// }
+		} finally {
+			clearVideo();
+      setIsLoading(false);
+    }
 	};
 
 	return (
