@@ -2,7 +2,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClerkSupabaseClientSsr } from "../../../utils/supabase/server";
 import { generateEmbeddings } from "../../../utils/embeddings";
-import { type } from "os";
 
 export async function POST(req) {
 	// ensuring user is authenticated
